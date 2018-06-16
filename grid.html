@@ -1,0 +1,62 @@
+<html>
+    
+    <head>
+       <title>Canvas Grid</title> 
+    </head>
+    
+    <body>
+        <canvas id="canvas" width="500" height="500" style="border:1px solid #CCCCCC;">
+        </canvas>
+
+        <script src="grid.js"></script>
+        <script>
+            // Create class passing canvas object id
+            var grid = new Grid('canvas');
+
+            // Number of cells in the grid
+            grid.setSize(5, 5);
+
+            // Pixels between cells
+            grid.setSpacing(20, 20);
+
+            // Colors
+            grid.setBackgroundColor('black');
+            grid.setCellsColor('#006699');
+
+            // Canvas size in pixel
+            grid.setWidth(500);
+            grid.setHeight(500);
+            
+            // Apply settings and generate grid on canvas
+            grid.generate();
+
+
+            // OBJECTS : Create objects
+            grid.addRect('r1', grid.MEDIUM, 0, 0, 'red');
+            grid.addCircle('c1', grid.SMALL, 3, 3, 'green');
+
+            var pointList = [
+                {x: 0, y: 0},
+                {x: 1, y: 0},
+                {x: 2, y: 0},
+                {x: 3, y: 0},
+                {x: 3, y: 1},
+                {x: 3, y: 2},
+                {x: 3, y: 3}
+            ];
+            grid.addLine('l1', grid.SMALLER, 'yellow', pointList);
+
+
+            // OBJECTS : Move objects
+            grid.moveObject('r1', grid.DOWN);
+            grid.moveObject('r1', grid.DOWN);
+            grid.moveObject('r1', grid.DOWN);
+
+
+            // Click listener
+            grid.setOnCellClick( function (x, y) {
+                grid.addRect('r'+x+y, grid.MEDIUM, x, y, 'red');
+            })
+        </script>
+    </body>
+</html>
