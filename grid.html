@@ -32,7 +32,7 @@
 
 
             // OBJECTS : Create objects
-            grid.addRect('r1', grid.MEDIUM, 0, 0, 'red');
+            grid.toggleRect('r1', grid.MEDIUM, 0, 0, 'red');
             grid.addCircle('c1', grid.SMALL, 3, 3, 'green');
 
             var pointList = [
@@ -55,7 +55,7 @@
 
             // Click listener
             grid.setOnCellClick( function (x, y) {
-                grid.addRect('r'+x+y, grid.MEDIUM, x, y, 'red');
+                grid.toggleRect('r'+x+y, grid.MEDIUM, x, y, 'red');
             })
         </script>
     </body>
