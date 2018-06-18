@@ -26,8 +26,8 @@
         grid.setSpacing(0, 0);
 
         // Colors
-        grid.setBackgroundColor('#142b3f');
-        grid.setCellsColor('#142b3f');
+        grid.setBackgroundColor(grid.BG_COLOR);
+        grid.setCellsColor(grid.BG_COLOR);
 
         // Canvas size in pixel
         grid.setWidth(canvas_side);
@@ -38,7 +38,7 @@
 
 
         // OBJECTS : Create objects
-        grid.addRect('r1', grid.MAX, 0, 0, '#d5a76b');
+        grid.addRect('r1', grid.MAX, 0, 0, grid.RECT_COLOR);
 
         var pointList = [
             { x: 0, y: 0 },
@@ -49,9 +49,9 @@
             { x: 3, y: 2 },
             { x: 3, y: 3 }
         ];
-        grid.addLine('l1', grid.SMALLER, '#b18ec5', pointList);
-        grid.addCircle('start', grid.MEDIUM_SMALL, 0, 0, '#00ff00');
-        grid.addCircle('end', grid.MEDIUM_SMALL, 3, 3, '#ff0000');
+        grid.addLine('l1', grid.SMALLER, grid.LINE_COLOR, pointList);
+        grid.addCircle('start', grid.MEDIUM_SMALL, 0, 0, grid.START_COLOR);
+        grid.addCircle('end', grid.MEDIUM_SMALL, 3, 3, grid.END_COLOR);
 
 
         // OBJECTS : Move objects
@@ -62,7 +62,7 @@
 
         // Click listener
         grid.setOnCellClick(function (x, y) {
-            grid.toggleRect('r' + x + y, grid.MAX, x, y, '#d5a76b');
+            grid.toggleRect('r' + x + y, grid.MAX, x, y, grid.RECT_COLOR);
         })
     </script>
 </body>
