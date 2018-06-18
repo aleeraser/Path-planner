@@ -1,5 +1,5 @@
 class Grid {
-    
+
     constructor(canvas_id) {
         this.CIRCLE = 'TYPE_CIRCLE';
         this.RECT = 'TYPE_RECT';
@@ -10,10 +10,13 @@ class Grid {
         this.LEFT = 'DIR_LEFT';
         this.RIGHT = 'DIR_RIGHT';
 
+        this.MAX = 1.0;
         this.BIG = 0.8;
         this.MEDIUM = 0.6;
+        this.MEDIUM_SMALL = 0.4;
         this.SMALL = 0.3;
-        this.SMALLER = 0.1;
+        this.SMALLER = 0.2;
+        this.MIN = 0.1;
 
         this.canvas_id = canvas_id;
         this.canvas_obj = document.getElementById(this.canvas_id);
@@ -26,11 +29,12 @@ class Grid {
         // Color configurations
         this.bg_color = '#000000';
         this.cell_color = '#006699';
-        
+
         // Cell size info
         this.cell_width = null;
         this.cell_height = null;
         this.grid_matrix = null;
+        this.wall_map = null;
 
         // Objects in the grid
         this.objects = null;
@@ -80,6 +84,10 @@ class Grid {
         return this.size_y;
     }
 
+    cellHasWall(x, y) {
+        return this.wall_map[x][y];
+    }
+
     setSpacing(spacing_x, spacing_y) {
         this.spacing_x = spacing_x;
         this.spacing_y = spacing_y;
@@ -112,8 +120,10 @@ class Grid {
         console.log(this.cell_width + " - " + this.cell_height);
 
         this.grid_matrix = [];
+        this.wall_map = [];
 
         for (var i = 0; i < this.size_y; i++) {
+            this.wall_map[i] = [];
 
             var grid_row = [];
 
@@ -124,6 +134,8 @@ class Grid {
                 }
 
                 grid_row.push(cell_coords);
+
+                this.wall_map[i][j] = 0;
             }
 
             this.grid_matrix.push(grid_row);
@@ -138,17 +150,17 @@ class Grid {
         this.context.clearRect(0, 0, this.canvas_obj.width, this.canvas_obj.height);
     }
 
-    
+
     drawBackground() {
         this.context.fillStyle = this.bg_color;
         this.context.fillRect(0, 0, this.canvas_obj.width, this.canvas_obj.height);
-    } 
+    }
 
 
     drawCells() {
         for (var i = 0; i < this.grid_matrix.length; i++) {
             for (var j = 0; j < this.grid_matrix[i].length; j++) {
-                var cell = this.grid_matrix[i][j];            
+                var cell = this.grid_matrix[i][j];
                 this.context.fillStyle = this.cell_color;
                 this.context.fillRect(cell.x, cell.y, this.cell_width, this.cell_height);
             }
@@ -162,7 +174,7 @@ class Grid {
         }
 
         for (var i = 0; i < this.objects.length; i++) {
-            switch(this.objects[i].type) {
+            switch (this.objects[i].type) {
                 case this.RECT:
                     this.drawRect(this.objects[i]);
                     break;
@@ -173,8 +185,8 @@ class Grid {
 
                 case this.LINE:
                     this.drawLine(this.objects[i]);
-                    break;    
-                
+                    break;
+
                 default:
                     console.log('Uknown object type');
             }
@@ -203,9 +215,9 @@ class Grid {
     drawCircle(obj) {
         var cell = this.grid_matrix[obj.y][obj.x];
 
-        var radius = this.cell_width < this.cell_height ? 
+        var radius = this.cell_width < this.cell_height ?
             (this.cell_width / 2) * obj.size :
-            (this.cell_height / 2) * obj.size; 
+            (this.cell_height / 2) * obj.size;
 
         var pos = {
             x: cell.x + (this.cell_width / 2),
@@ -216,7 +228,7 @@ class Grid {
         this.context.strokeStyle = obj.color;
         this.context.lineWidth = 0;
         this.context.beginPath();
-        this.context.arc(pos.x, pos.y, radius, 0, 2*Math.PI);
+        this.context.arc(pos.x, pos.y, radius, 0, 2 * Math.PI);
         this.context.fill();
         this.context.closePath();
     }
@@ -229,13 +241,13 @@ class Grid {
 
         this.context.beginPath();
         this.context.strokeStyle = obj.color;
-        this.context.lineWidth = (this.cell_height / 2) * obj.size; 
+        this.context.lineWidth = (this.cell_height / 2) * obj.size;
 
         for (var i = 0; i < obj.pointList.length; i++) {
             var cell = this.grid_matrix[obj.pointList[i].y][obj.pointList[i].x];
             var pos = {
-                x: cell.x + this.cell_width/2,
-                y: cell.y + this.cell_height/2
+                x: cell.x + this.cell_width / 2,
+                y: cell.y + this.cell_height / 2
             }
 
             if (i == 0) {
@@ -301,8 +313,36 @@ class Grid {
         this.updateGraphics();
     }
 
+    removeObj(name) {
+        if (this.objects == null) {
+            console.log('Grid has to be generated yet');
+            return;
+        }
+
+        for (var i = 0; i < this.objects.length; i++) {
+            if (this.objects[i].name == name) {
+                this.objects.splice(i, 1);
+                this.updateGraphics();
+                return;
+            }
+        }
+
+        console.log('Error: object not found.');
+    }
+
     addRect(name, size, cell_x, cell_y, color) {
-        this.addObj(name, size, cell_x, cell_y, color, this.RECT, null);
+        if (!this.cellHasWall(cell_x, cell_y))
+            this.addObj(name, size, cell_x, cell_y, color, this.RECT, null);
+    }
+
+    toggleRect(name, size, cell_x, cell_y, color) {
+        if (!this.cellHasWall(cell_x, cell_y)) {
+            this.addObj(name, size, cell_x, cell_y, color, this.RECT, null);
+            this.wall_map[cell_x][cell_y] = name;
+        } else {
+            this.wall_map[cell_x][cell_y] = 0;
+            this.removeObj(name);
+        }
     }
 
     addCircle(name, size, cell_x, cell_y, color) {
@@ -319,13 +359,13 @@ class Grid {
                 var obj = this.objects[i];
                 if (obj.type != this.CIRCLE && obj.type != this.RECT) {
                     console.log('Impossible to move this type of object');
-                    return; 
+                    return;
                 }
 
                 var old_x = obj.x;
                 var old_y = obj.y;
 
-                switch(direction) {
+                switch (direction) {
                     case this.UP:
                         obj.y -= 1;
                         break;
@@ -351,7 +391,7 @@ class Grid {
                     console.log('Invalid new position');
                     obj.x = old_x;
                     obj.y = old_y;
-                } 
+                }
 
                 this.updateGraphics();
                 return;
@@ -403,7 +443,7 @@ class Grid {
         var x = Math.ceil(click_x / (grid.cell_width + grid.spacing_x)) - 1;
         var y = Math.ceil(click_y / (grid.cell_height + grid.spacing_y)) - 1;
 
-        //console.log('Cell ' + x + ' - ' + y);
+        console.log('Cell ' + x + ' - ' + y);
 
         grid.onCellClick(x, y);
     }
