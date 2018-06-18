@@ -1,62 +1,73 @@
 <html>
-    
-    <head>
-       <title>Canvas Grid</title> 
-    </head>
-    
-    <body>
-        <canvas id="canvas" width="500" height="500" style="border:1px solid #CCCCCC;">
-        </canvas>
 
-        <script src="grid.js"></script>
-        <script>
-            // Create class passing canvas object id
-            var grid = new Grid('canvas');
+<head>
+    <title>Canvas Grid</title>
+</head>
 
-            // Number of cells in the grid
-            grid.setSize(5, 5);
+<body>
+    <canvas id="canvas" style="border:1px solid teal;">
+    </canvas>
 
-            // Pixels between cells
-            grid.setSpacing(20, 20);
+    <script src="grid.js"></script>
+    <script>
+        var canvas_side = 500;
+        var n_cells = 25;
 
-            // Colors
-            grid.setBackgroundColor('black');
-            grid.setCellsColor('#006699');
+        var canvas = document.getElementById('canvas');
+        canvas.width, canvas.height = canvas_side;
 
-            // Canvas size in pixel
-            grid.setWidth(500);
-            grid.setHeight(500);
-            
-            // Apply settings and generate grid on canvas
-            grid.generate();
+        // Create class passing canvas object id
+        var grid = new Grid('canvas');
 
+        // Number of cells in the grid
+        grid.setSize(n_cells, n_cells);
 
-            // OBJECTS : Create objects
-            grid.addRect('r1', grid.MEDIUM, 0, 0, 'red');
-            grid.addCircle('c1', grid.SMALL, 3, 3, 'green');
+        // Pixels between cells
+        grid.setSpacing(0, 0);
 
-            var pointList = [
-                {x: 0, y: 0},
-                {x: 1, y: 0},
-                {x: 2, y: 0},
-                {x: 3, y: 0},
-                {x: 3, y: 1},
-                {x: 3, y: 2},
-                {x: 3, y: 3}
-            ];
-            grid.addLine('l1', grid.SMALLER, 'yellow', pointList);
+        // Colors
+        grid.setBackgroundColor('#142b3f');
+        grid.setCellsColor('#142b3f');
+
+        // Canvas size in pixel
+        grid.setWidth(canvas_side);
+        grid.setHeight(canvas_side);
+
+        // Apply settings and generate grid on canvas
+        grid.generate();
 
 
-            // OBJECTS : Move objects
-            grid.moveObject('r1', grid.DOWN);
-            grid.moveObject('r1', grid.DOWN);
-            grid.moveObject('r1', grid.DOWN);
+        // OBJECTS : Create objects
+        grid.addRect('r1', grid.MAX, 0, 0, '#d5a76b');
+
+        var pointList = [
+            { x: 0, y: 0 },
+            { x: 1, y: 0 },
+            { x: 2, y: 0 },
+            { x: 3, y: 0 },
+            { x: 3, y: 1 },
+            { x: 3, y: 2 },
+            { x: 3, y: 3 }
+        ];
+        grid.addLine('l1', grid.SMALLER, '#b18ec5', pointList);
+        grid.addCircle('start', grid.MEDIUM_SMALL, 0, 0, '#00ff00');
+        grid.addCircle('end', grid.MEDIUM_SMALL, 3, 3, '#ff0000');
 
 
-            // Click listener
-            grid.setOnCellClick( function (x, y) {
-                grid.addRect('r'+x+y, grid.MEDIUM, x, y, 'red');
-            })
-        </script>
-    </body>
+        // OBJECTS : Move objects
+        grid.moveObject('r1', grid.DOWN);
+        grid.moveObject('r1', grid.DOWN);
+        grid.moveObject('r1', grid.DOWN);
+
+
+        // Click listener
+        grid.setOnCellClick(function (x, y) {
+            grid.toggleRect('r' + x + y, grid.MAX, x, y, '#d5a76b');
+        })
+    </script>
+</body>
+
 </html>
+
+
+<!-- #b18ec5 -->
