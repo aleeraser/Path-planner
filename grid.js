@@ -280,6 +280,8 @@ class Grid {
         for (var i = 0; i < this.objects.length; i++) {
             if (this.objects[i].name == name) {
                 console.log('Name already used by another object');
+                this.objects.splice(i,1);
+                this.updateGraphics();
                 return;
             }
         }
