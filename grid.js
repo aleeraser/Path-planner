@@ -27,8 +27,12 @@ class Grid {
         this.spacing_y = 5;
 
         // Color configurations
-        this.bg_color = '#000000';
-        this.cell_color = '#006699';
+        this.RECT_COLOR = '#d5a76b';
+        this.BG_COLOR = '#142b3f';
+        this.START_COLOR = '#00ff00';
+        this.END_COLOR = '#ff0000';
+        this.LINE_COLOR = '#b18ec5';
+        this.CELL_COLOR = this.BG_COLOR;
 
         // Cell size info
         this.cell_width = null;
@@ -40,11 +44,19 @@ class Grid {
         this.objects = null;
 
         // Listeners
-        this.canvas_obj.addEventListener('mouseover', this.onMouseOver);
-        this.canvas_obj.addEventListener('mouseout', this.onMouseExit);
+        // this.canvas_obj.addEventListener('mouseover', this.onMouseOver.bind(null, this));
+        this.canvas_obj.addEventListener('mousemove', this.onMouseMove.bind(null, this));
+        this.canvas_obj.addEventListener('mousedown', this.onMouseDown.bind(null, this));
+        this.canvas_obj.addEventListener('mouseup', this.onMouseUp.bind(null, this));
+        // this.canvas_obj.addEventListener('mouseout', this.onMouseExit);
         this.canvas_obj.addEventListener('click', this.onMouseClick.bind(null, this));
 
+        this.mouseIsDown = false;
+        this.mouseWasDragged = false;
+        this.lastCellMouseOver = null;
+
         this.onCellClick = null;
+
     }
 
     setWidth(width_pixel) {
@@ -94,11 +106,11 @@ class Grid {
     }
 
     setBackgroundColor(color) {
-        this.bg_color = color;
+        this.BG_COLOR = color;
     }
 
     setCellsColor(color) {
-        this.cell_color = color;
+        this.CELL_COLOR = color;
     }
 
     printInfo() {
@@ -117,7 +129,7 @@ class Grid {
         this.cell_width = ((this.canvas_obj.width - this.spacing_x) / this.size_x) - this.spacing_x;
         this.cell_height = ((this.canvas_obj.height - this.spacing_y) / this.size_y) - this.spacing_y;
 
-        console.log(this.cell_width + " - " + this.cell_height);
+        // console.log(this.cell_width + " - " + this.cell_height);
 
         this.grid_matrix = [];
         this.wall_map = [];
@@ -152,7 +164,7 @@ class Grid {
 
 
     drawBackground() {
-        this.context.fillStyle = this.bg_color;
+        this.context.fillStyle = this.BG_COLOR;
         this.context.fillRect(0, 0, this.canvas_obj.width, this.canvas_obj.height);
     }
 
@@ -161,7 +173,7 @@ class Grid {
         for (var i = 0; i < this.grid_matrix.length; i++) {
             for (var j = 0; j < this.grid_matrix[i].length; j++) {
                 var cell = this.grid_matrix[i][j];
-                this.context.fillStyle = this.cell_color;
+                this.context.fillStyle = this.CELL_COLOR;
                 this.context.fillRect(cell.x, cell.y, this.cell_width, this.cell_height);
             }
         }
@@ -280,7 +292,7 @@ class Grid {
         for (var i = 0; i < this.objects.length; i++) {
             if (this.objects[i].name == name) {
                 console.log('Name already used by another object');
-                this.objects.splice(i,1);
+                this.objects.splice(i, 1);
                 this.updateGraphics();
                 return;
             }
@@ -404,50 +416,78 @@ class Grid {
         console.log('Object name not found');
     }
 
+    getCorrespondingCell(grid, event) {
+        var x = event.layerX;
+        var y = event.layerY;
+
+        // Simple
+        var cell_x = Math.ceil(x / (grid.cell_width + grid.spacing_x)) - 1;
+        var cell_y = Math.ceil(y / (grid.cell_height + grid.spacing_y)) - 1;
+
+        if (cell_x > 24 || cell_y > 24) {
+            return;
+        }
+
+        console.log('Cell ' + cell_x + ' - ' + cell_y);
+
+        return { x: cell_x, y: cell_y }
+    }
+
 
     // Mouse handling
-    onMouseOver(event) {
-        //console.log('Coordinates: ' + event.clientX + ' - ' + event.clientY);
+    // onMouseOver(grid, event) {
+    //     console.log('Enter');
+    // }
+
+    onMouseMove(grid, event) {
+        grid.mouseWasDragged = true;
+
+        if (grid.mouseIsDown) {
+            var cell;
+
+            if (cell = grid.getCorrespondingCell(grid, event)) {
+
+                if (grid.lastCellMouseOver) {
+                    // console.log(grid.lastCellMouseOver.x + ' - ' + grid.lastCellMouseOver.y);
+
+                    if (grid.lastCellMouseOver.x != cell.x || grid.lastCellMouseOver.y != cell.y) {
+                        var cell_name = 'r' + cell.x + cell.y;
+                        grid.toggleRect(cell_name, grid.MAX, cell.x, cell.y, grid.RECT_COLOR);
+                    }
+
+                }
+
+                grid.lastCellMouseOver = cell;
+            }
+        }
+    }
+
+    onMouseDown(grid, event) {
+        grid.mouseIsDown = true;
+        grid.mouseWasDragged = false;
+    }
+
+    onMouseUp(grid, event) {
+        grid.mouseIsDown = false;
     }
 
     onMouseExit() {
-        //console.log('Exit');
+        // console.log('Exit');
     }
 
     onMouseClick(grid, event) {
-        //console.log('Click');
+        // console.log('Click');
 
-        var click_x = event.layerX;
-        var click_y = event.layerY;
-
-        // Simple
-        //var x = Math.ceil(click_x / (grid.cell_width + grid.spacing_x)) - 1;
-        //var y = Math.ceil(click_y / (grid.cell_height + grid.spacing_y)) - 1;
-
-        //console.log("Original " + click_x + " - " + click_y);
-
-        // Keeping spacing in consideration
-        click_x -= grid.spacing_x;
-        click_y -= grid.spacing_y;
-
-        //console.log("Adjusted " + click_x + " - " + click_y);
-
-        if (click_x < 0 || click_y < 0) {
-            console.log('Clicked on spacing');
-            return;
+        if (!grid.mouseWasDragged) {
+            var cell;
+    
+            if (cell = grid.getCorrespondingCell(grid, event)) {
+                grid.onCellClick(cell.x, cell.y);
+            }
         }
+        
+        grid.mouseWasDragged = false;
 
-        if (click_x % (grid.cell_width + grid.spacing_x) > grid.cell_width || click_y % (grid.cell_height + grid.spacing_y) > grid.cell_height) {
-            console.log('Clicked on spacing');
-            return;
-        }
-
-        var x = Math.ceil(click_x / (grid.cell_width + grid.spacing_x)) - 1;
-        var y = Math.ceil(click_y / (grid.cell_height + grid.spacing_y)) - 1;
-
-        console.log('Cell ' + x + ' - ' + y);
-
-        grid.onCellClick(x, y);
     }
 
 
