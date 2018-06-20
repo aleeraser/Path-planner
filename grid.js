@@ -143,22 +143,24 @@ class Grid {
             return;
         }
 
-        for (var i = 0; i < this.objects.length; i++) {
-            switch (this.objects[i].type) {
+        for (var key in this.objects) {
+            var obj = this.objects[key];
+
+            switch (this.objects[key].type) {
                 case this.RECT:
-                    this.drawRect(this.objects[i]);
+                    this.drawRect(obj);
                     break;
 
                 case this.CIRCLE:
-                    this.drawCircle(this.objects[i]);
+                    this.drawCircle(obj);
                     break;
 
                 case this.LINE:
-                    this.drawLine(this.objects[i]);
+                    this.drawLine(obj);
                     break;
 
                 default:
-                    console.log('Uknown object type');
+                    console.log('ERROR: Uknown object type');
             }
         }
     }
@@ -239,28 +241,25 @@ class Grid {
     // OBJECTS CREATION/DESTRUCTION UTILS
     addObj(name, size, cell_x, cell_y, color, type, pointList) {
         if (this.objects == null) {
-            console.log('Grid has to be generated yet');
+            console.log('ERROR: Grid has to be generated yet');
             return;
         }
 
-        for (var i = 0; i < this.objects.length; i++) {
-            if (this.objects[i].name == name) {
-                console.log('Name already used by another object');
-                this.objects.splice(i, 1);
-                this.updateGraphics();
-                return;
-            }
+        if (this.objects[name]) {
+            console.log('ERROR: Name already used by another object');
+            return;
         }
 
+
         if (type != this.LINE && cell_x >= this.size_x || cell_y >= this.size_y) {
-            console.log('Positioning outside of the grid');
+            console.log('ERROR: Positioning outside of the grid');
             return;
         }
 
         if (type == this.LINE) {
             for (var i = 0; i < pointList.length; i++) {
                 if (pointList[i].x >= this.size_x || pointList[i].y >= this.size_y) {
-                    console.log('Point in pointlist outside of the grid');
+                    console.log('ERROR: Point in pointlist outside of the grid');
                     return;
                 }
             }
@@ -276,26 +275,19 @@ class Grid {
             pointList: pointList
         }
 
-        this.objects.push(obj);
+        this.objects[name] = obj;
 
         this.updateGraphics();
     }
 
     removeObj(name) {
         if (this.objects == null) {
-            console.log('Grid has to be generated yet');
+            console.log('ERROR: Grid has to be generated yet');
             return;
         }
 
-        for (var i = 0; i < this.objects.length; i++) {
-            if (this.objects[i].name == name) {
-                this.objects.splice(i, 1);
-                this.updateGraphics();
-                return;
-            }
-        }
-
-        console.log('Error: object not found.');
+        delete this.objects[name];
+        this.updateGraphics();
     }
 
     addRect(name, size, cell_x, cell_y, color) {
@@ -336,78 +328,71 @@ class Grid {
     }
 
     moveObject(name, direction) {
-        for (var i = 0; i < this.objects.length; i++) {
-            if (this.objects[i].name == name) {
-                var obj = this.objects[i];
-                if (obj.type != this.CIRCLE && obj.type != this.RECT) {
-                    console.log('Impossible to move this type of object');
-                    return;
-                }
+        var obj;
 
-                var old_x = obj.x;
-                var old_y = obj.y;
+        if (obj = this.objects[name]) {
 
-                switch (direction) {
-                    case this.UP:
-                        obj.y -= 1;
-                        break;
-
-                    case this.DOWN:
-                        obj.y += 1;
-                        break;
-
-                    case this.LEFT:
-                        obj.x -= 1;
-                        break;
-
-                    case this.RIGHT:
-                        obj.x += 1;
-                        break;
-
-                    default:
-                        console.log('Direction unknown');
-                }
-
-                // Check validity of movement
-                if (obj.x < 0 || obj.x >= this.size_x || obj.y < 0 || obj.y >= this.size_y) {
-                    console.log('Invalid new position');
-                    obj.x = old_x;
-                    obj.y = old_y;
-                }
-
-                this.updateGraphics();
+            if (obj.type != this.CIRCLE && obj.type != this.RECT) {
+                console.log('ERROR: Impossible to move this type of object');
                 return;
-
             }
+
+            var old_x = obj.x;
+            var old_y = obj.y;
+
+            switch (direction) {
+                case this.UP:
+                    obj.y -= 1;
+                    break;
+
+                case this.DOWN:
+                    obj.y += 1;
+                    break;
+
+                case this.LEFT:
+                    obj.x -= 1;
+                    break;
+
+                case this.RIGHT:
+                    obj.x += 1;
+                    break;
+
+                default:
+                    console.log('ERROR: Direction unknown');
+            }
+
+            // Check validity of movement
+            if (obj.x < 0 || obj.x >= this.size_x || obj.y < 0 || obj.y >= this.size_y) {
+                console.log('ERROR: Invalid new position');
+                obj.x = old_x;
+                obj.y = old_y;
+            }
+
+            this.updateGraphics();
+            return;
+
         }
 
-        console.log('Object name not found');
+        console.log('ERROR: Object name not found');
     }
 
     setObjectPosition(name, x, y) {
-        for (var i = 0; i < this.objects.length; i++) {
-            if (this.objects[i].name == name) {
-                var obj = this.objects[i];
-                obj.x = x;
-                obj.y = y;
-                this.updateGraphics();
-            }
-        }        
+        this.objects[name].x = x;
+        this.objects[name].y = y;
+        this.updateGraphics();
     }
 
 
     // Generate the grid based on setting specified before
     generate() {
         if (this.size_x == null || this.size_y == null) {
-            console.log('Missing size parameters');
+            console.log('ERROR: Missing size parameters');
             return false;
         }
 
         // Calculate size in pixel based on dimensions and number of cells
         this.cell_width = ((this.canvas_obj.width - this.spacing_x) / this.size_x) - this.spacing_x;
         this.cell_height = ((this.canvas_obj.height - this.spacing_y) / this.size_y) - this.spacing_y;
-
-        // console.log(this.cell_width + " - " + this.cell_height);
 
         this.grid_matrix = [];
         this.wall_map = [];
@@ -502,17 +487,13 @@ class Grid {
         grid.mouseIsDown = false;
     }
 
-    onMouseExit() {
-        // console.log('Exit');
-    }
-
     onMouseRightClick(grid, event) {
         event.preventDefault();
 
         if (event.button != 0) {
             var cell = grid.getCorrespondingCell(grid, event);
             var obj;
-            
+
             if (grid.positionEndPoint) {
                 obj = 'end';
                 grid.positionEndPoint = false;
@@ -526,8 +507,6 @@ class Grid {
     }
 
     onMouseClick(grid, event) {
-        // console.log('Click');
-
         if (!grid.mouseWasDragged) {
             var cell;
 
