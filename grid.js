@@ -146,7 +146,7 @@ class Grid {
         for (var key in this.objects) {
             var obj = this.objects[key];
 
-            switch (this.objects[key].type) {
+            switch (obj.type) {
                 case this.RECT:
                     this.drawRect(obj);
                     break;
@@ -435,7 +435,7 @@ class Grid {
         var cell_y = Math.ceil(y / (grid.cell_height + grid.spacing_y)) - 1;
 
         if (cell_x < 0 || cell_x > 24 || cell_y < 0 || cell_y > 24) {
-            return;
+            return null;
         }
 
         console.log('Cell ' + cell_x + ' - ' + cell_y);
@@ -490,19 +490,22 @@ class Grid {
     onMouseRightClick(grid, event) {
         event.preventDefault();
 
-        if (event.button != 0) {
-            var cell = grid.getCorrespondingCell(grid, event);
-            var obj;
+        if (event.button != 0) { // Right or middle click
+            var cell;
 
-            if (grid.positionEndPoint) {
-                obj = 'end';
-                grid.positionEndPoint = false;
-            } else {
-                obj = 'start';
-                grid.positionEndPoint = true;
+            if (cell = grid.getCorrespondingCell(grid, event)) {
+                var obj;
+
+                if (grid.positionEndPoint) {
+                    obj = 'end';
+                    grid.positionEndPoint = false;
+                } else {
+                    obj = 'start';
+                    grid.positionEndPoint = true;
+                }
+
+                grid.setObjectPosition(obj, cell.x, cell.y);
             }
-
-            grid.setObjectPosition(obj, cell.x, cell.y);
         }
     }
 
