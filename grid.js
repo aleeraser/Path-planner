@@ -53,12 +53,15 @@ class Grid {
         this.canvas_obj.addEventListener('mousedown', this.onMouseDown.bind(null, this));
         this.canvas_obj.addEventListener('mouseup', this.onMouseUp.bind(null, this));
         this.canvas_obj.addEventListener('click', this.onMouseClick.bind(null, this));
+        this.canvas_obj.addEventListener('contextmenu', this.onMouseRightClick.bind(null, this));
+
 
         // Mouse status helpers
         this.mouseIsDown = false;
         this.mouseWasDragged = false;
         this.lastCellMouseOver = null;
         this.mouseDragAction = null;
+        this.positionEndPoint = false;
 
         this.onCellClickDrag = null;
 
@@ -381,6 +384,18 @@ class Grid {
         console.log('Object name not found');
     }
 
+    setObjectPosition(name, x, y) {
+        for (var i = 0; i < this.objects.length; i++) {
+            if (this.objects[i].name == name) {
+                var obj = this.objects[i];
+                obj.x = x;
+                obj.y = y;
+                this.updateGraphics();
+                // TODO: questa funzione da errore, implementarla per bene
+            }
+        }        
+    }
+
 
     // Generate the grid based on setting specified before
     generate() {
@@ -490,6 +505,20 @@ class Grid {
 
     onMouseExit() {
         // console.log('Exit');
+    }
+
+    onMouseRightClick(grid, event) {
+        event.preventDefault();
+
+        if (event.button != 0) {
+            if (grid.positionEndPoint) {
+                grid.setObjectPosition('end', grid.getCorrespondingCell(grid, event));
+                grid.positionEndPoint = true;
+            } else {
+                grid.setObjectPosition('start', grid.getCorrespondingCell(grid, event));
+                grid.positionEndPoint = true;
+            }
+        }
     }
 
     onMouseClick(grid, event) {
