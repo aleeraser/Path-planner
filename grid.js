@@ -31,7 +31,8 @@ class Grid {
         this.spacing_y = 5;
 
         // Color configurations
-        this.RECT_COLOR = '#d5a76b';
+        this.WALL_COLOR = '#d5a76b';
+        this.WALL_COLOR = '#d5a76b';
         this.BG_COLOR = '#142b3f';
         this.START_COLOR = '#00ff00';
         this.END_COLOR = '#ff0000';
@@ -53,9 +54,11 @@ class Grid {
         this.canvas_obj.addEventListener('mouseup', this.onMouseUp.bind(null, this));
         this.canvas_obj.addEventListener('click', this.onMouseClick.bind(null, this));
 
+        // Mouse status helpers
         this.mouseIsDown = false;
         this.mouseWasDragged = false;
         this.lastCellMouseOver = null;
+        this.mouseDragAction = null;
 
         this.onCellClickDrag = null;
 
@@ -293,18 +296,32 @@ class Grid {
     }
 
     addRect(name, size, cell_x, cell_y, color) {
-        if (!this.cellHasWall(cell_x, cell_y))
-            this.addObj(name, size, cell_x, cell_y, color, this.RECT, null);
+        this.addObj(name, size, cell_x, cell_y, color, this.RECT, null);
     }
 
-    toggleRect(name, size, cell_x, cell_y, color) {
+    addWall(cell_x, cell_y) {
         if (!this.cellHasWall(cell_x, cell_y)) {
-            this.addObj(name, size, cell_x, cell_y, color, this.RECT, null);
+            var name = 'w' + cell_x + cell_y;
+
+            this.addRect(name, this.MAX, cell_x, cell_y, this.WALL_COLOR);
             this.wall_map[cell_x][cell_y] = 1;
-        } else {
+        }
+    }
+
+    removeWall(cell_x, cell_y) {
+        if (this.cellHasWall(cell_x, cell_y)) {
+            var name = 'w' + cell_x + cell_y;
+
             this.wall_map[cell_x][cell_y] = 0;
             this.removeObj(name);
         }
+    }
+
+    toggleWall(cell_x, cell_y) {
+        if (!this.cellHasWall(cell_x, cell_y))
+            this.addWall(cell_x, cell_y);
+        else
+            this.removeWall(cell_x, cell_y);
     }
 
     addCircle(name, size, cell_x, cell_y, color) {
@@ -433,8 +450,6 @@ class Grid {
 
     // MOUSE HANDLING
     onMouseMove(grid, event) {
-        grid.mouseWasDragged = true;
-
         if (grid.mouseIsDown) {
             var cell;
 
@@ -443,11 +458,20 @@ class Grid {
                 if (grid.lastCellMouseOver) {
 
                     if (grid.lastCellMouseOver.x != cell.x || grid.lastCellMouseOver.y != cell.y) {
-                        var cell_name = 'r' + cell.x + cell.y;
-                        // grid.toggleRect(cell_name, grid.MAX, cell.x, cell.y, grid.RECT_COLOR);
-                        grid.onCellClickDrag(cell.x, cell.y);
-                    }
+                        if (!grid.mouseWasDragged) {
+                            grid.mouseWasDragged = true;
 
+                            if (grid.cellHasWall(cell.x, cell.y))
+                                grid.mouseDragAction = function (x, y) {
+                                    grid.removeWall(x, y);
+                                };
+                            else
+                                grid.mouseDragAction = function (x, y) {
+                                    grid.addWall(x, y);
+                                };
+                        }
+                        grid.mouseDragAction(cell.x, cell.y);
+                    }
                 }
 
                 grid.lastCellMouseOver = cell;

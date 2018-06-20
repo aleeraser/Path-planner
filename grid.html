@@ -41,7 +41,7 @@
 
         // Click listener
         grid.setOnCellClickDrag(function (x, y) {
-            grid.toggleRect('r' + x + y, grid.MAX, x, y, grid.RECT_COLOR);
+            grid.toggleWall(x, y);
         })
     </script>
 </body>
