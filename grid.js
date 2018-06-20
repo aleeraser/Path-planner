@@ -1,6 +1,6 @@
 class Grid {
 
-    constructor(canvas_id) {
+    constructor(canvas_id, side_length, cell_number) {
         this.CIRCLE = 'TYPE_CIRCLE';
         this.RECT = 'TYPE_RECT';
         this.LINE = 'TYPE_LINE';
@@ -21,6 +21,10 @@ class Grid {
         this.canvas_id = canvas_id;
         this.canvas_obj = document.getElementById(this.canvas_id);
         this.context = this.canvas_obj.getContext('2d');
+
+        // Canvas size and cell number
+        this.canvas_obj.width = this.canvas_obj.height = side_length;
+        this.size_x = this.size_y = cell_number;
 
         // Pixel distance between grid cells
         this.spacing_x = 5;
@@ -44,130 +48,79 @@ class Grid {
         this.objects = null;
 
         // Listeners
-        // this.canvas_obj.addEventListener('mouseover', this.onMouseOver.bind(null, this));
         this.canvas_obj.addEventListener('mousemove', this.onMouseMove.bind(null, this));
         this.canvas_obj.addEventListener('mousedown', this.onMouseDown.bind(null, this));
         this.canvas_obj.addEventListener('mouseup', this.onMouseUp.bind(null, this));
-        // this.canvas_obj.addEventListener('mouseout', this.onMouseExit);
         this.canvas_obj.addEventListener('click', this.onMouseClick.bind(null, this));
 
         this.mouseIsDown = false;
         this.mouseWasDragged = false;
         this.lastCellMouseOver = null;
 
-        this.onCellClick = null;
+        this.onCellClickDrag = null;
 
     }
 
-    setWidth(width_pixel) {
-        this.canvas_obj.width = width_pixel;
-    }
 
-    setHeight(height_pixel) {
-        this.canvas_obj.height = height_pixel;
-    }
-
+    // GETTERS and SETTERS
     getWidth() {
         return this.canvas_obj.width;
     }
-
+    setWidth(width_pixel) {
+        this.canvas_obj.width = width_pixel;
+    }
     getHeight() {
         return this.canvas_obj.height;
     }
-
+    setHeight(height_pixel) {
+        this.canvas_obj.height = height_pixel;
+    }
+    getSize() {
+        return {
+            x: this.size_x,
+            y: this.size_y
+        }
+    }
     setSize(size_x, size_y) {
         this.setSizeX(size_x);
         this.setSizeY(size_y);
     }
-
-    setSizeX(size_x) {
-        this.size_x = size_x;
-    }
-
-    setSizeY(size_y) {
-        this.size_y = size_y;
-    }
-
     getSizeX() {
         return this.size_x;
     }
-
+    setSizeX(size_x) {
+        this.size_x = size_x;
+    }
     getSizeY() {
         return this.size_y;
     }
-
-    cellHasWall(x, y) {
-        return this.wall_map[x][y];
+    setSizeY(size_y) {
+        this.size_y = size_y;
     }
-
     setSpacing(spacing_x, spacing_y) {
         this.spacing_x = spacing_x;
         this.spacing_y = spacing_y;
     }
-
     setBackgroundColor(color) {
         this.BG_COLOR = color;
     }
-
     setCellsColor(color) {
         this.CELL_COLOR = color;
     }
-
     printInfo() {
         console.log(this.canvas_id);
     }
 
 
-    // Generate the grid based on setting specified before
-    generate() {
-        if (this.size_x == null || this.size_y == null) {
-            console.log('Missing size parameters');
-            return false;
-        }
-
-        // Calculate size in pixel based on dimensions and number of cells
-        this.cell_width = ((this.canvas_obj.width - this.spacing_x) / this.size_x) - this.spacing_x;
-        this.cell_height = ((this.canvas_obj.height - this.spacing_y) / this.size_y) - this.spacing_y;
-
-        // console.log(this.cell_width + " - " + this.cell_height);
-
-        this.grid_matrix = [];
-        this.wall_map = [];
-
-        for (var i = 0; i < this.size_y; i++) {
-            this.wall_map[i] = [];
-
-            var grid_row = [];
-
-            for (var j = 0; j < this.size_x; j++) {
-                var cell_coords = {
-                    x: this.spacing_x + j * (this.cell_width + this.spacing_x),
-                    y: this.spacing_y + i * (this.cell_height + this.spacing_y)
-                }
-
-                grid_row.push(cell_coords);
-
-                this.wall_map[i][j] = 0;
-            }
-
-            this.grid_matrix.push(grid_row);
-        }
-
-        this.objects = [];
-        this.updateGraphics();
-    }
-
-
+    // DRAWING UTILS
     clearCanvas() {
         this.context.clearRect(0, 0, this.canvas_obj.width, this.canvas_obj.height);
     }
-
 
     drawBackground() {
         this.context.fillStyle = this.BG_COLOR;
         this.context.fillRect(0, 0, this.canvas_obj.width, this.canvas_obj.height);
     }
-
 
     drawCells() {
         for (var i = 0; i < this.grid_matrix.length; i++) {
@@ -178,7 +131,6 @@ class Grid {
             }
         }
     }
-
 
     drawObjects() {
         if (this.objects == null) {
@@ -205,7 +157,6 @@ class Grid {
         }
     }
 
-
     drawRect(obj) {
         var cell = this.grid_matrix[obj.y][obj.x];
 
@@ -222,7 +173,6 @@ class Grid {
         this.context.fillStyle = obj.color;
         this.context.fillRect(pos.x, pos.y, size.x, size.y);
     }
-
 
     drawCircle(obj) {
         var cell = this.grid_matrix[obj.y][obj.x];
@@ -245,7 +195,6 @@ class Grid {
         this.context.closePath();
     }
 
-
     drawLine(obj) {
         if (obj.pointList.length <= 1) {
             return;
@@ -264,8 +213,7 @@ class Grid {
 
             if (i == 0) {
                 this.context.moveTo(pos.x, pos.y)
-            }
-            else {
+            } else {
                 this.context.lineTo(pos.x, pos.y);
             }
         }
@@ -273,7 +221,6 @@ class Grid {
         this.context.stroke();
         this.context.closePath();
     }
-
 
     updateGraphics() {
         this.clearCanvas();
@@ -283,6 +230,7 @@ class Grid {
     }
 
 
+    // OBJECTS CREATION/DESTRUCTION UTILS
     addObj(name, size, cell_x, cell_y, color, type, pointList) {
         if (this.objects == null) {
             console.log('Grid has to be generated yet');
@@ -352,7 +300,7 @@ class Grid {
     toggleRect(name, size, cell_x, cell_y, color) {
         if (!this.cellHasWall(cell_x, cell_y)) {
             this.addObj(name, size, cell_x, cell_y, color, this.RECT, null);
-            this.wall_map[cell_x][cell_y] = name;
+            this.wall_map[cell_x][cell_y] = 1;
         } else {
             this.wall_map[cell_x][cell_y] = 0;
             this.removeObj(name);
@@ -416,6 +364,52 @@ class Grid {
         console.log('Object name not found');
     }
 
+
+    // Generate the grid based on setting specified before
+    generate() {
+        if (this.size_x == null || this.size_y == null) {
+            console.log('Missing size parameters');
+            return false;
+        }
+
+        // Calculate size in pixel based on dimensions and number of cells
+        this.cell_width = ((this.canvas_obj.width - this.spacing_x) / this.size_x) - this.spacing_x;
+        this.cell_height = ((this.canvas_obj.height - this.spacing_y) / this.size_y) - this.spacing_y;
+
+        // console.log(this.cell_width + " - " + this.cell_height);
+
+        this.grid_matrix = [];
+        this.wall_map = [];
+
+        for (var i = 0; i < this.size_y; i++) {
+            this.wall_map[i] = [];
+
+            var grid_row = [];
+
+            for (var j = 0; j < this.size_x; j++) {
+                var cell_coords = {
+                    x: this.spacing_x + j * (this.cell_width + this.spacing_x),
+                    y: this.spacing_y + i * (this.cell_height + this.spacing_y)
+                }
+
+                grid_row.push(cell_coords);
+
+                this.wall_map[i][j] = 0;
+            }
+
+            this.grid_matrix.push(grid_row);
+        }
+
+        this.objects = [];
+        this.updateGraphics();
+    }
+
+
+    // UTILS
+    cellHasWall(x, y) {
+        return this.wall_map[x][y];
+    }
+
     getCorrespondingCell(grid, event) {
         var x = event.layerX;
         var y = event.layerY;
@@ -424,21 +418,20 @@ class Grid {
         var cell_x = Math.ceil(x / (grid.cell_width + grid.spacing_x)) - 1;
         var cell_y = Math.ceil(y / (grid.cell_height + grid.spacing_y)) - 1;
 
-        if (cell_x > 24 || cell_y > 24) {
+        if (cell_x < 0 || cell_x > 24 || cell_y < 0 || cell_y > 24) {
             return;
         }
 
         console.log('Cell ' + cell_x + ' - ' + cell_y);
 
-        return { x: cell_x, y: cell_y }
+        return {
+            x: cell_x,
+            y: cell_y
+        }
     }
 
 
-    // Mouse handling
-    // onMouseOver(grid, event) {
-    //     console.log('Enter');
-    // }
-
+    // MOUSE HANDLING
     onMouseMove(grid, event) {
         grid.mouseWasDragged = true;
 
@@ -448,11 +441,11 @@ class Grid {
             if (cell = grid.getCorrespondingCell(grid, event)) {
 
                 if (grid.lastCellMouseOver) {
-                    // console.log(grid.lastCellMouseOver.x + ' - ' + grid.lastCellMouseOver.y);
 
                     if (grid.lastCellMouseOver.x != cell.x || grid.lastCellMouseOver.y != cell.y) {
                         var cell_name = 'r' + cell.x + cell.y;
-                        grid.toggleRect(cell_name, grid.MAX, cell.x, cell.y, grid.RECT_COLOR);
+                        // grid.toggleRect(cell_name, grid.MAX, cell.x, cell.y, grid.RECT_COLOR);
+                        grid.onCellClickDrag(cell.x, cell.y);
                     }
 
                 }
@@ -480,18 +473,17 @@ class Grid {
 
         if (!grid.mouseWasDragged) {
             var cell;
-    
+
             if (cell = grid.getCorrespondingCell(grid, event)) {
-                grid.onCellClick(cell.x, cell.y);
+                grid.onCellClickDrag(cell.x, cell.y);
             }
         }
-        
+
         grid.mouseWasDragged = false;
 
     }
 
-
-    setOnCellClick(evHandler) {
-        this.onCellClick = evHandler;
+    setOnCellClickDrag(evHandler) {
+        this.onCellClickDrag = evHandler;
     }
 }

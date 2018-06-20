@@ -10,58 +10,37 @@
 
     <script src="grid.js"></script>
     <script>
-        var canvas_side = 500;
-        var n_cells = 25;
-
-        var canvas = document.getElementById('canvas');
-        canvas.width, canvas.height = canvas_side;
+        var side_length = 500,
+            cell_number = 25,
+            cell_spacing = 0;
 
         // Create class passing canvas object id
-        var grid = new Grid('canvas');
-
-        // Number of cells in the grid
-        grid.setSize(n_cells, n_cells);
+        var grid = new Grid('canvas', side_length, cell_number);
 
         // Pixels between cells
-        grid.setSpacing(0, 0);
+        grid.setSpacing(cell_spacing, cell_spacing);
 
         // Colors
         grid.setBackgroundColor(grid.BG_COLOR);
         grid.setCellsColor(grid.BG_COLOR);
 
-        // Canvas size in pixel
-        grid.setWidth(canvas_side);
-        grid.setHeight(canvas_side);
-
         // Apply settings and generate grid on canvas
         grid.generate();
 
-
-        // OBJECTS : Create objects
-        grid.addRect('r1', grid.MAX, 0, 0, grid.RECT_COLOR);
-
-        var pointList = [
-            { x: 0, y: 0 },
-            { x: 1, y: 0 },
-            { x: 2, y: 0 },
-            { x: 3, y: 0 },
-            { x: 3, y: 1 },
-            { x: 3, y: 2 },
-            { x: 3, y: 3 }
-        ];
+        var pointList = [{x: 0, y: 0},
+                         {x: 1, y: 0},
+                         {x: 2, y: 0},
+                         {x: 3, y: 0},
+                         {x: 3, y: 1},
+                         {x: 3, y: 2},
+                         {x: 3, y: 3}];
+        
         grid.addLine('l1', grid.SMALLER, grid.LINE_COLOR, pointList);
         grid.addCircle('start', grid.MEDIUM_SMALL, 0, 0, grid.START_COLOR);
         grid.addCircle('end', grid.MEDIUM_SMALL, 3, 3, grid.END_COLOR);
 
-
-        // OBJECTS : Move objects
-        grid.moveObject('r1', grid.DOWN);
-        grid.moveObject('r1', grid.DOWN);
-        grid.moveObject('r1', grid.DOWN);
-
-
         // Click listener
-        grid.setOnCellClick(function (x, y) {
+        grid.setOnCellClickDrag(function (x, y) {
             grid.toggleRect('r' + x + y, grid.MAX, x, y, grid.RECT_COLOR);
         })
     </script>
@@ -71,3 +50,12 @@
 
 
 <!-- #b18ec5 -->
+
+<!-- var pointList = [{x: 0,y: 0},
+                         {x: 1,y: 0},
+                         {x: 2,y: 0},
+                         {x: 3,y: 0},
+                         {x: 3,y: 1},
+                         {x: 3,y: 2},
+                         {x: 3,y: 3 }
+        ]; -->
