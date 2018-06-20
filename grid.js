@@ -391,7 +391,6 @@ class Grid {
                 obj.x = x;
                 obj.y = y;
                 this.updateGraphics();
-                // TODO: questa funzione da errore, implementarla per bene
             }
         }        
     }
