@@ -511,13 +511,18 @@ class Grid {
         event.preventDefault();
 
         if (event.button != 0) {
+            var cell = grid.getCorrespondingCell(grid, event);
+            var obj;
+            
             if (grid.positionEndPoint) {
-                grid.setObjectPosition('end', grid.getCorrespondingCell(grid, event));
-                grid.positionEndPoint = true;
+                obj = 'end';
+                grid.positionEndPoint = false;
             } else {
-                grid.setObjectPosition('start', grid.getCorrespondingCell(grid, event));
+                obj = 'start';
                 grid.positionEndPoint = true;
             }
+
+            grid.setObjectPosition(obj, cell.x, cell.y);
         }
     }
 
