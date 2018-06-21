@@ -429,7 +429,7 @@ class Grid {
 
         this.grid_matrix = [];
         this.wall_map = [];
-
+        console.log(this.size_y)
         for (var i = 0; i < this.size_y; i++) {
             this.wall_map[i] = [];
 
@@ -467,7 +467,7 @@ class Grid {
         var cell_x = Math.ceil(x / (grid.cell_width + grid.spacing_x)) - 1;
         var cell_y = Math.ceil(y / (grid.cell_height + grid.spacing_y)) - 1;
 
-        if (cell_x < 0 || cell_x > 24 || cell_y < 0 || cell_y > 24) {
+        if (cell_x < 0 || cell_x > this.size_x || cell_y < 0 || cell_y > this.size_y) {
             return null;
         }
 
