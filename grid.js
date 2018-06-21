@@ -37,6 +37,7 @@ class Grid {
         this.START_COLOR = '#00ff00';
         this.END_COLOR = '#ff0000';
         this.LINE_COLOR = '#b18ec5';
+        this.PATH_COLOR = '#b18ec5';
         this.CELL_COLOR = this.BG_COLOR;
 
         // Cell size info
@@ -48,13 +49,14 @@ class Grid {
         // Objects in the grid
         this.objects = null;
 
+        this.n_path = 0;
+
         // Listeners
         this.canvas_obj.addEventListener('mousemove', this.onMouseMove.bind(null, this));
         this.canvas_obj.addEventListener('mousedown', this.onMouseDown.bind(null, this));
         this.canvas_obj.addEventListener('mouseup', this.onMouseUp.bind(null, this));
         this.canvas_obj.addEventListener('click', this.onMouseClick.bind(null, this));
         this.canvas_obj.addEventListener('contextmenu', this.onMouseRightClick.bind(null, this));
-
 
         // Mouse status helpers
         this.mouseIsDown = false;
@@ -290,6 +292,7 @@ class Grid {
         this.updateGraphics();
     }
 
+    // do not use this for adding walls, use addWall
     addRect(name, size, cell_x, cell_y, color) {
         this.addObj(name, size, cell_x, cell_y, color, this.RECT, null);
     }
@@ -309,6 +312,8 @@ class Grid {
 
             this.wall_map[cell_x][cell_y] = 0;
             this.removeObj(name);
+        } else {
+            console.log("ERROR: trying to remove wall on (" + cell_x + ", " + cell_y + "), but no wall was found");
         }
     }
 
@@ -323,8 +328,33 @@ class Grid {
         this.addObj(name, size, cell_x, cell_y, color, this.CIRCLE, null);
     }
 
+    // do not use this for adding path, use addPath
     addLine(name, size, color, pointList) {
         this.addObj(name, size, null, null, color, this.LINE, pointList);
+    }
+
+    addPath(name = null, pointList) {
+        var _name = name;
+
+        if (!_name)
+            _name = 'path' + this.n_path++;
+
+        this.addLine(_name, grid.SMALLER, this.PATH_COLOR, pointList);
+    }
+
+    removePath(name) {
+        var obj;
+
+        if (obj = this.objects[name]) {
+            if (this.objects[name].type == 'TYPE_LINE') {
+                delete this.objects[name];
+                this.n_path--;
+            } else {
+                console.log("ERROR: trying to remove path '" + name + "', but its type is actually " + this.objects[name].type);
+            }
+        } else {
+            console.log("ERROR: '" + name + "' not found while trying to remove it");
+        }
     }
 
     moveObject(name, direction) {
@@ -494,17 +524,69 @@ class Grid {
             var cell;
 
             if (cell = grid.getCorrespondingCell(grid, event)) {
-                var obj;
 
                 if (grid.positionEndPoint) {
-                    obj = 'end';
+                    if (!grid.objects['end'])
+                        grid.addCircle('end', grid.MEDIUM_SMALL, cell.x, cell.y, grid.END_COLOR);
+                    else
+                        grid.setObjectPosition('end', cell.x, cell.y);
                     grid.positionEndPoint = false;
+
+                    // var path_x = Math.abs(grid.objects['start'].x - grid.objects['end'].x);
+                    // var path_y = Math.abs(grid.objects['start'].y - grid.objects['end'].y);
+
+                    var pointList = [];
+
+                    if (grid.objects['start'].x <= grid.objects['end'].x) {
+                        for (var i = grid.objects['start'].x; i <= grid.objects['end'].x; i++) {
+                            pointList.push({
+                                x: i,
+                                y: grid.objects['start'].y
+                            });
+                        }
+                    } else {
+                        for (var i = grid.objects['start'].x; i >= grid.objects['end'].x; i--) {
+                            pointList.push({
+                                x: i,
+                                y: grid.objects['start'].y
+                            });
+                        }
+                    }
+
+                    if (grid.objects['start'].y <= grid.objects['end'].y) {
+                        for (var j = grid.objects['start'].y; j <= grid.objects['end'].y; j++) {
+                            var lastPoint = pointList[pointList.length - 1];
+
+                            if (lastPoint.y != j) {
+                                pointList.push({
+                                    x: grid.objects['end'].x,
+                                    y: j
+                                });
+                            }
+                        }
+                    } else {
+                        for (var j = grid.objects['start'].y; j >= grid.objects['end'].y; j--) {
+                            var lastPoint = pointList[pointList.length - 1];
+
+                            if (lastPoint.y != j) {
+                                pointList.push({
+                                    x: grid.objects['end'].x,
+                                    y: j
+                                });
+                            }
+                        }
+                    }
+
+                    grid.removePath('test');
+                    grid.addPath('test', pointList);
                 } else {
-                    obj = 'start';
+                    if (!grid.objects['start'])
+                        grid.addCircle('start', grid.MEDIUM_SMALL, cell.x, cell.y, grid.START_COLOR);
+                    else
+                        grid.setObjectPosition('start', cell.x, cell.y);
+
                     grid.positionEndPoint = true;
                 }
-
-                grid.setObjectPosition(obj, cell.x, cell.y);
             }
         }
     }

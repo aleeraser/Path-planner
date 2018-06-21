@@ -27,18 +27,6 @@
         // Apply settings and generate grid on canvas
         grid.generate();
 
-        var pointList = [{x: 0, y: 0},
-                         {x: 1, y: 0},
-                         {x: 2, y: 0},
-                         {x: 3, y: 0},
-                         {x: 3, y: 1},
-                         {x: 3, y: 2},
-                         {x: 3, y: 3}];
-        
-        grid.addLine('l1', grid.SMALLER, grid.LINE_COLOR, pointList);
-        grid.addCircle('start', grid.MEDIUM_SMALL, 0, 0, grid.START_COLOR);
-        grid.addCircle('end', grid.MEDIUM_SMALL, 3, 3, grid.END_COLOR);
-
         // Click listener
         grid.setOnCellClickDrag(function (x, y) {
             grid.toggleWall(x, y);
@@ -47,15 +35,3 @@
 </body>
 
 </html>
-
-
-<!-- #b18ec5 -->
-
-<!-- var pointList = [{x: 0,y: 0},
-                         {x: 1,y: 0},
-                         {x: 2,y: 0},
-                         {x: 3,y: 0},
-                         {x: 3,y: 1},
-                         {x: 3,y: 2},
-                         {x: 3,y: 3 }
-        ]; -->
