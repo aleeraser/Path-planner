@@ -31,6 +31,10 @@
         grid.setOnCellClickDrag(function (x, y) {
             grid.toggleWall(x, y);
         })
+
+        grid.setOnCellRightClick(function (cell) {
+            grid.relocateStartEnd(cell);
+        })
     </script>
 </body>
 

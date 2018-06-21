@@ -66,6 +66,9 @@ class Grid {
         this.positionEndPoint = false;
 
         this.onCellClickDrag = null;
+        this.onCellRightClick = function (cell) {
+            this.relocateStartEnd(cell);
+        };
 
     }
 
@@ -353,7 +356,7 @@ class Grid {
                 console.log("ERROR: trying to remove path '" + name + "', but its type is actually " + this.objects[name].type);
             }
         } else {
-            console.log("ERROR: '" + name + "' not found while trying to remove it");
+            console.log("WARNING: path '" + name + "' not found while trying to remove it");
         }
     }
 
@@ -476,6 +479,74 @@ class Grid {
         }
     }
 
+    relocateStartEnd(cell) {        
+        if (grid.positionEndPoint) {
+            if (!grid.objects['end'])
+                grid.addCircle('end', grid.MEDIUM_SMALL, cell.x, cell.y, grid.END_COLOR);
+            else
+                grid.setObjectPosition('end', cell.x, cell.y);
+            grid.positionEndPoint = false;
+
+            // var path_x = Math.abs(grid.objects['start'].x - grid.objects['end'].x);
+            // var path_y = Math.abs(grid.objects['start'].y - grid.objects['end'].y);
+
+            var pointList = [];
+
+            if (grid.objects['start'].x <= grid.objects['end'].x) {
+                for (var i = grid.objects['start'].x; i <= grid.objects['end'].x; i++) {
+                    pointList.push({
+                        x: i,
+                        y: grid.objects['start'].y
+                    });
+                }
+            } else {
+                for (var i = grid.objects['start'].x; i >= grid.objects['end'].x; i--) {
+                    pointList.push({
+                        x: i,
+                        y: grid.objects['start'].y
+                    });
+                }
+            }
+
+            if (grid.objects['start'].y <= grid.objects['end'].y) {
+                for (var j = grid.objects['start'].y; j <= grid.objects['end'].y; j++) {
+                    var lastPoint = pointList[pointList.length - 1];
+
+                    if (lastPoint.y != j) {
+                        pointList.push({
+                            x: grid.objects['end'].x,
+                            y: j
+                        });
+                    }
+                }
+            } else {
+                for (var j = grid.objects['start'].y; j >= grid.objects['end'].y; j--) {
+                    var lastPoint = pointList[pointList.length - 1];
+
+                    if (lastPoint.y != j) {
+                        pointList.push({
+                            x: grid.objects['end'].x,
+                            y: j
+                        });
+                    }
+                }
+            }
+
+            grid.addPath('test', pointList);
+        } else {
+            grid.removePath('test');
+
+            if (!grid.objects['start'])
+                grid.addCircle('start', grid.MEDIUM_SMALL, cell.x, cell.y, grid.START_COLOR);
+            else {
+                grid.setObjectPosition('start', cell.x, cell.y);
+                grid.removeObj('end');
+            }
+
+            grid.positionEndPoint = true;
+        }
+    }
+
 
     // MOUSE HANDLING
     onMouseMove(grid, event) {
@@ -524,71 +595,13 @@ class Grid {
             var cell;
 
             if (cell = grid.getCorrespondingCell(grid, event)) {
-
-                if (grid.positionEndPoint) {
-                    if (!grid.objects['end'])
-                        grid.addCircle('end', grid.MEDIUM_SMALL, cell.x, cell.y, grid.END_COLOR);
-                    else
-                        grid.setObjectPosition('end', cell.x, cell.y);
-                    grid.positionEndPoint = false;
-
-                    // var path_x = Math.abs(grid.objects['start'].x - grid.objects['end'].x);
-                    // var path_y = Math.abs(grid.objects['start'].y - grid.objects['end'].y);
-
-                    var pointList = [];
-
-                    if (grid.objects['start'].x <= grid.objects['end'].x) {
-                        for (var i = grid.objects['start'].x; i <= grid.objects['end'].x; i++) {
-                            pointList.push({
-                                x: i,
-                                y: grid.objects['start'].y
-                            });
-                        }
-                    } else {
-                        for (var i = grid.objects['start'].x; i >= grid.objects['end'].x; i--) {
-                            pointList.push({
-                                x: i,
-                                y: grid.objects['start'].y
-                            });
-                        }
-                    }
-
-                    if (grid.objects['start'].y <= grid.objects['end'].y) {
-                        for (var j = grid.objects['start'].y; j <= grid.objects['end'].y; j++) {
-                            var lastPoint = pointList[pointList.length - 1];
-
-                            if (lastPoint.y != j) {
-                                pointList.push({
-                                    x: grid.objects['end'].x,
-                                    y: j
-                                });
-                            }
-                        }
-                    } else {
-                        for (var j = grid.objects['start'].y; j >= grid.objects['end'].y; j--) {
-                            var lastPoint = pointList[pointList.length - 1];
-
-                            if (lastPoint.y != j) {
-                                pointList.push({
-                                    x: grid.objects['end'].x,
-                                    y: j
-                                });
-                            }
-                        }
-                    }
-
-                    grid.removePath('test');
-                    grid.addPath('test', pointList);
-                } else {
-                    if (!grid.objects['start'])
-                        grid.addCircle('start', grid.MEDIUM_SMALL, cell.x, cell.y, grid.START_COLOR);
-                    else
-                        grid.setObjectPosition('start', cell.x, cell.y);
-
-                    grid.positionEndPoint = true;
-                }
+                grid.onCellRightClick(cell);
             }
         }
+    }
+
+    setOnCellRightClick(evHandler) {
+        this.onCellRightClick = evHandler;
     }
 
     onMouseClick(grid, event) {
