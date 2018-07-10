@@ -547,11 +547,7 @@ class Grid {
 
     bug2(dummyPath){
         var path = [];
-        var j=0;
-        for ( var i = 0; i<dummyPath.length; i++){
-            console.log(dummyPath);
-            console.log(i)
-            console.log(dummyPath[i])
+        for ( var i = 0; i<dummyPath.length; i++ ){
             var step = dummyPath[i];
             if ( !this.wall_map[step.x][step.y] ){
                 console.log(step)
@@ -559,28 +555,27 @@ class Grid {
             }
             else{
                 console.log("wall")
-                var lastStep = dummyPath[dummyPath.indexOf(step)-1];
+                var lastStep = dummyPath[ this.isInPath(dummyPath,step)-1];
                 path = this.cirgumnavigate(lastStep, step, dummyPath, dummyPath)
                 console.log("raggirato")
                 var last = path[path.length-1]
-                j = dummyPath.indexOf(last) -1
-                console.log("---" + j);
+                i = this.isInPath(dummyPath, last) -1;
+                console.log("--- " + i);
             }
-            j = j+1;
-            
         }
         return path
     }
 
     isInPath(path, step){
-        var r = false;
-        path.forEach(el => {
-            
+        var r = -1;
+        for (var i=0; i<path.length; i++){   
+            var el = path[i];
             if (el.x == step.x && el.y==step.y){
                 console.log("FOUND!!!!!!!!!!!!!!")
-                r = true;
+                r = i;
+                break;
             }
-        });
+        }
         return r;
     }
  
@@ -588,7 +583,7 @@ class Grid {
         console.log(lastStep);
         console.log(obstacle)
         var dir = "";
-        var newPath = newPath.slice(0, newPath.indexOf(lastStep)+1)
+        var newPath = newPath.slice(0, this.isInPath(newPath,lastStep)+1)
         if (lastStep.y > obstacle.y)
             dir += "N";
         else if (lastStep.y < obstacle.y)
@@ -629,7 +624,7 @@ class Grid {
         newPath.push(newStep)
         console.log(newStep)
         if ( this.wall_map[newStep.x][newStep.y] != 1 ){
-            if (this.isInPath(oldPath,newStep))
+            if (this.isInPath(oldPath,newStep) != -1)
                 return newPath
             return this.cirgumnavigate(newStep, obstacle, newPath, oldPath);
         }
