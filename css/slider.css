@@ -4,7 +4,7 @@
 
 .slider {
     -webkit-appearance: none;
-    width: 8em !important; 
+    width: 100%; 
     background: #d3d3d3;
     outline: none;
     opacity: 0.7;
@@ -32,6 +32,3 @@
     cursor: pointer;
 }
 
-#settings{
-    margin:1em;
-}

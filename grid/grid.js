@@ -490,49 +490,7 @@ class Grid {
             // var path_x = Math.abs(grid.objects['start'].x - grid.objects['end'].x);
             // var path_y = Math.abs(grid.objects['start'].y - grid.objects['end'].y);
 
-            var pointList = [];
-
-            if (grid.objects['start'].x <= grid.objects['end'].x) {
-                for (var i = grid.objects['start'].x; i <= grid.objects['end'].x; i++) {
-                    pointList.push({
-                        x: i,
-                        y: grid.objects['start'].y
-                    });
-                }
-            } else {
-                for (var i = grid.objects['start'].x; i >= grid.objects['end'].x; i--) {
-                    pointList.push({
-                        x: i,
-                        y: grid.objects['start'].y
-                    });
-                }
-            }
-
-            if (grid.objects['start'].y <= grid.objects['end'].y) {
-                for (var j = grid.objects['start'].y; j <= grid.objects['end'].y; j++) {
-                    var lastPoint = pointList[pointList.length - 1];
-
-                    if (lastPoint.y != j) {
-                        pointList.push({
-                            x: grid.objects['end'].x,
-                            y: j
-                        });
-                    }
-                }
-            } else {
-                for (var j = grid.objects['start'].y; j >= grid.objects['end'].y; j--) {
-                    var lastPoint = pointList[pointList.length - 1];
-
-                    if (lastPoint.y != j) {
-                        pointList.push({
-                            x: grid.objects['end'].x,
-                            y: j
-                        });
-                    }
-                }
-            }
-
-            grid.addPath('test', pointList);
+            this.evaluatePath();
         } else {
             grid.removePath('test');
 
@@ -547,6 +505,137 @@ class Grid {
         }
     }
 
+    evaluatePath(){
+        if (grid.objects['start'] && grid.objects['end']) {
+            var pointList = [];
+            pointList.push({
+                x: grid.objects['start'].x,
+                y: grid.objects['start'].y
+            })
+            var last = grid.objects['start']
+            var x,y;
+            while (last.x != grid.objects['end'].x || last.y != grid.objects['end'].y ){
+                if (last.x < grid.objects['end'].x)
+                    x = last.x + 1
+                else if (last.x == grid.objects['end'].x) 
+                    x = last.x
+                else x = last.x - 1
+
+                if (last.y < grid.objects['end'].y)
+                    y = last.y + 1
+                else if (last.y == grid.objects['end'].y)
+                    y = last.y
+                else y = last.y - 1
+
+                pointList.push({
+                    x: x,
+                    y: y
+                })
+                last.x=x;
+                last.y=y;
+            }
+
+            
+            if (grid.objects['test'])
+                grid.removePath('test');
+            pointList = this.bug2(pointList);
+            grid.addPath('test', pointList);
+            grid.setObjectPosition('start', pointList[0].x, pointList[0].y);
+        }
+    }
+
+
+    bug2(dummyPath){
+        var path = [];
+        var j=0;
+        for ( var i = 0; i<dummyPath.length; i++){
+            console.log(dummyPath);
+            console.log(i)
+            console.log(dummyPath[i])
+            var step = dummyPath[i];
+            if ( !this.wall_map[step.x][step.y] ){
+                console.log(step)
+                path.push(step);
+            }
+            else{
+                console.log("wall")
+                var lastStep = dummyPath[dummyPath.indexOf(step)-1];
+                path = this.cirgumnavigate(lastStep, step, dummyPath, dummyPath)
+                console.log("raggirato")
+                var last = path[path.length-1]
+                j = dummyPath.indexOf(last) -1
+                console.log("---" + j);
+            }
+            j = j+1;
+            
+        }
+        return path
+    }
+
+    isInPath(path, step){
+        var r = false;
+        path.forEach(el => {
+            
+            if (el.x == step.x && el.y==step.y){
+                console.log("FOUND!!!!!!!!!!!!!!")
+                r = true;
+            }
+        });
+        return r;
+    }
+ 
+    cirgumnavigate(lastStep, obstacle, newPath, oldPath){
+        console.log(lastStep);
+        console.log(obstacle)
+        var dir = "";
+        var newPath = newPath.slice(0, newPath.indexOf(lastStep)+1)
+        if (lastStep.y > obstacle.y)
+            dir += "N";
+        else if (lastStep.y < obstacle.y)
+            dir += "S";
+        if (lastStep.x > obstacle.x)
+            dir += "O";
+        else if (lastStep.x < obstacle.x)
+            dir += "E";
+        
+        var newStep;
+        console.log(dir)
+        if (dir == "E" || dir == "SE"){
+            newStep = {
+                x : lastStep.x,
+                y : lastStep.y +1
+            }
+        }
+        else if (dir == "NE" || dir == "N") {
+            newStep = {
+                x: lastStep.x +1,
+                y: lastStep.y
+            }
+        }
+       
+        else if (dir == "NO" || dir == "O") {
+            newStep = {
+                x: lastStep.x,
+                y: lastStep.y - 1
+            }
+        }
+        else if (dir == "SO" || dir == "S") {
+            newStep = {
+                x: lastStep.x - 1,
+                y: lastStep.y
+            }
+        }
+       
+        newPath.push(newStep)
+        console.log(newStep)
+        if ( this.wall_map[newStep.x][newStep.y] != 1 ){
+            if (this.isInPath(oldPath,newStep))
+                return newPath
+            return this.cirgumnavigate(newStep, obstacle, newPath, oldPath);
+        }
+        else 
+            return this.cirgumnavigate(lastStep, newStep, newPath, oldPath)
+    }
 
     // MOUSE HANDLING
     onMouseMove(grid, event) {

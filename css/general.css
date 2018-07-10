@@ -1,0 +1,13 @@
+.parentDiv div {
+    float: left;
+    clear: none; 
+}
+#settings{
+    width: 30%;
+    margin:1em;
+
+}
+
+.settingSelect{
+    width : auto  ;
+}

@@ -3,20 +3,26 @@
 <head>
     <title>Canvas Grid</title>
     <link rel="stylesheet" type="text/css" href="../css/slider.css">
+    <link rel="stylesheet" type="text/css" href="../css/general.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 </head>
 
 <body>
-    <div style='margin:0.1em;'>
+    <div style='margin:0.1em;' class = "parentDiv">
         <canvas id="canvas" style="border:1px solid teal;">
         </canvas>
         <div id="settings">
             <p>Cell number:</p>
             <input type="range" min="1" max="60" value="30" class="slider" id="cellNumber"></input>
+            <p> Planning method:</p>
+            <select class="form-control settingSelect" id="methodSelect">
+                <option>Bug2</option>
+                
+            </select>
             </br>
-            <button type="button" class="btn btn-default" onclick="redrawGrid()">Redraw grid</button>
+            <button type="button" class="btn btn-default" onclick="redrawGrid()">Set and Redraw</button>
         </div>
     </div>
 
