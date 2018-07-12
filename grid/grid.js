@@ -715,47 +715,67 @@ class Grid {
         console.log("Visibility Graph Method");
 
         // Variables setup
-        this.obstacle_edges_names = [];
-        this.obstacle_edges_map = [];
+        this.obstacle_vertex_names = [];
+        this.obstacle_vertex_map = [];
         for (var i = 0; i < this.size_x; i++) {
             var l = []
             for  (var j = 0; j < this.size_y; j++) {
                 l.push(0);
             }
-            this.obstacle_edges_map.push(l);
+            this.obstacle_vertex_map.push(l);
         } 
 
-        this.addAllObstaclesEdges();
+        this.addAllObstaclesVertex();
 
-        var point_names = this.obstacle_edges_names.concat('start').concat('end');
+        var point_names = this.obstacle_vertex_names.concat('start').concat('end');
 
         var i, j;
+        var single_paths = [];
+
         for (i = 0; i < point_names.length; i++) {
-            for (j = i; j < point_names.length; j++) {
-                var path = this.evaluatePathWithArgs(point_names[i], point_names[j]);
-                this.addPath("path"+i+j, path);
+            for (j = i+1; j < point_names.length; j++) {
+                var p = this.evaluatePathWithArgs(point_names[i], point_names[j]);
+                single_paths.push({name: 'singlepath' + i + j, path: p});
             }
         }
 
+        var free_single_paths = []; 
+        // For each single_path check if it goes through obstacles
+        single_paths.forEach(sp => {
+            var ok = true;
+            sp.path.forEach(step => {
+                if (this.wall_map[step.x][step.y] == 1) {
+                    ok = false;
+                    return;
+                }
+            })
+            if (ok) {
+               free_single_paths.push(sp);
+            }
+        })
+
+        free_single_paths.forEach(fsp => {
+            this.addPath(fsp.name, fsp.path);
+        })
         //var pointList = this.evaluatePathWithArgs("start", "end");
         //this.addPath("vgtest", pointList);
     }
 
-    addAllObstaclesEdges() {
+    addAllObstaclesVertex() {
         // Add obstacles edges
         var i = 0, j = 0;
         for (i = 0; i < this.wall_map.length; i++) {
             var row = this.wall_map[i];
             for (j = 0; j < row.length; j++) {
                 if (row[j] == 1) {
-                    this.addObstacleEdges(i, j);
+                    this.addObstacleVertex(i, j);
                 }
             }
         }
     }
 
     // Check the four diagonal point of the specified cell, and adds edges if not occupied
-    addObstacleEdges(x, y) {
+    addObstacleVertex(x, y) {
         var diagonalPositions = [
             [1, 1],
             [1, -1],
@@ -771,11 +791,11 @@ class Grid {
             }
 
 
-            else if (this.wall_map[x + element[0]][y] == 0 && this.wall_map[x][y + element[1]] == 0) {
-                if (this.obstacle_edges_map[x+element[0]][y+element[1]] == 0) {
-                    this.addCircle('oe'+ (x + element[0]) + (y + element[1]), grid.MEDIUM, x + element[0], y + element[1], grid.OBSTACLE_EDGE_COLOR);
-                    this.obstacle_edges_names.push('oe'+ (x + element[0]) + (y + element[1]));
-                    this.obstacle_edges_map[x + element[0]][y + element[1]] = 1;
+            else if (this.wall_map[x + element[0]][y] == 0 && this.wall_map[x][y + element[1]] == 0 && this.wall_map[x + element[0]][y + element[1]] == 0) {
+                if (this.obstacle_vertex_map[x+element[0]][y+element[1]] == 0) {
+                    this.addCircle('ov'+ (x + element[0]) + (y + element[1]), grid.MEDIUM, x + element[0], y + element[1], grid.OBSTACLE_EDGE_COLOR);
+                    this.obstacle_vertex_names.push('ov'+ (x + element[0]) + (y + element[1]));
+                    this.obstacle_vertex_map[x + element[0]][y + element[1]] = 1;
                 }
             }         
         });
