@@ -555,8 +555,9 @@ class Grid {
             }
             else{
                 console.log("wall")
+                path.push(step);
                 var lastStep = dummyPath[ this.isInPath(dummyPath,step)-1];
-                path = this.cirgumnavigate(lastStep, step, dummyPath, dummyPath)
+                path = this.cirgumnavigate(lastStep, step, path, dummyPath)
                 console.log("raggirato")
                 var last = path[path.length-1]
                 i = this.isInPath(dummyPath, last) -1;
