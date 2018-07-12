@@ -39,6 +39,7 @@ class Grid {
         this.LINE_COLOR = '#b18ec5';
         this.PATH_COLOR = '#b18ec5';
         this.CELL_COLOR = this.BG_COLOR;
+        this.OBSTACLE_EDGE_COLOR = '#996600';
 
         // Cell size info
         this.cell_width = null;
@@ -490,7 +491,8 @@ class Grid {
             // var path_x = Math.abs(grid.objects['start'].x - grid.objects['end'].x);
             // var path_y = Math.abs(grid.objects['start'].y - grid.objects['end'].y);
 
-            this.evaluatePath();
+            //this.evaluatePath();
+            this.visibilityGraph();
         } else {
             grid.removePath('test');
 
@@ -698,5 +700,68 @@ class Grid {
 
     setOnCellClickDrag(evHandler) {
         this.onCellClickDrag = evHandler;
+    }
+
+
+
+
+
+
+    // Visibility Graph Methods
+    visibilityGraph() {
+        console.log("Visibility Graph Method");
+
+        // Variables setup
+        this.obstacle_edges_map = [];
+        for (var i = 0; i < this.size_x; i++) {
+            var l = []
+            for  (var j = 0; j < this.size_y; j++) {
+                l.push(0);
+            }
+            this.obstacle_edges_map.push(l);
+        } 
+
+        this.addAllObstaclesEdges();
+    }
+
+    addAllObstaclesEdges() {
+        // Add obstacles edges
+        var i = 0, j = 0;
+        for (i = 0; i < this.wall_map.length; i++) {
+            var row = this.wall_map[i];
+            for (j = 0; j < row.length; j++) {
+                if (row[j] == 1) {
+                    this.addObstacleEdges(i, j);
+                }
+            }
+        }
+    }
+
+    // Check the four diagonal point of the specified cell, and adds edges if not occupied
+    addObstacleEdges(x, y) {
+        var diagonalPositions = [
+            [x+1, y+1],
+            [x+1, y-1],
+            [x-1, y+1],
+            [x-1, y-1]
+        ];
+
+        diagonalPositions.forEach(element => {
+            if (element[0] >= this.size_x || element[0] < 0 || element[1] >= this.size_y || element[1] < 0) {
+                // Outside the map
+                return
+            }
+            if (this.wall_map[element[0]][element[1]] == 1) {
+                // Obstacle
+                return
+            }
+            if (this.obstacle_edges_map[element[0]][element[1]] == 1) {
+                // Already set edge
+                return
+            }
+
+            this.addCircle('oe'+ element[0] + element[1], grid.MEDIUM, element[0], element[1], grid.OBSTACLE_EDGE_COLOR);
+            this.obstacle_edges_map[element[0]][element[1]] = 1;
+        });
     }
 }

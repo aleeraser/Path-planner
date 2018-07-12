@@ -18,7 +18,7 @@
             <input type="range" min="1" max="60" value="30" class="slider" id="cellNumber"></input>
             <p> Planning method:</p>
             <select class="form-control settingSelect" id="methodSelect">
-                <option>Bug2</option>
+                <option>Visibility Graph</option>
                 
             </select>
             </br>
@@ -31,8 +31,7 @@
         var grid
 
         function redrawGrid() {
-            console.log("ciao")
-            grid.setSize(cell_number, cell_number)
+            grid.setSize(cell_number, cell_number);
             grid.generate();
             //initGrid();
         }
@@ -61,12 +60,9 @@
 
         }
 
-        var side_length = 500,
-            cell_number = 30
-        cell_spacing = 0;
+        var side_length = 500, cell_number = 30, cell_spacing = 0;
 
         // Create class passing canvas object id
-
         initGrid();
 
         var slider = document.getElementById("cellNumber");
