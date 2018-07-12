@@ -740,28 +740,26 @@ class Grid {
     // Check the four diagonal point of the specified cell, and adds edges if not occupied
     addObstacleEdges(x, y) {
         var diagonalPositions = [
-            [x+1, y+1],
-            [x+1, y-1],
-            [x-1, y+1],
-            [x-1, y-1]
+            [1, 1],
+            [1, -1],
+            [-1, 1],
+            [-1, -1]
         ];
 
         diagonalPositions.forEach(element => {
-            if (element[0] >= this.size_x || element[0] < 0 || element[1] >= this.size_y || element[1] < 0) {
+            
+            if (x + element[0] >= this.size_x || x + element[0] < 0 || y + element[1] >= this.size_y || y + element[1] < 0) {
                 // Outside the map
-                return
-            }
-            if (this.wall_map[element[0]][element[1]] == 1) {
-                // Obstacle
-                return
-            }
-            if (this.obstacle_edges_map[element[0]][element[1]] == 1) {
-                // Already set edge
-                return
+                return;
             }
 
-            this.addCircle('oe'+ element[0] + element[1], grid.MEDIUM, element[0], element[1], grid.OBSTACLE_EDGE_COLOR);
-            this.obstacle_edges_map[element[0]][element[1]] = 1;
+
+            else if (this.wall_map[x + element[0]][y] == 0 && this.wall_map[x][y + element[1]] == 0) {
+                if (this.obstacle_edges_map[x+element[0]][y+element[1]] == 0) {
+                    this.addCircle('oe'+ (x + element[0]) + (y + element[1]), grid.MEDIUM, x + element[0], y + element[1], grid.OBSTACLE_EDGE_COLOR);
+                    this.obstacle_edges_map[x + element[0]][y + element[1]] = 1;
+                }
+            }         
         });
     }
 }
