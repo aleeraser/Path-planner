@@ -214,9 +214,11 @@ class Grid {
             return;
         }
 
-        this.context.beginPath();
         this.context.strokeStyle = obj.color;
         this.context.lineWidth = (this.cell_height / 2) * obj.size;
+        this.context.beginPath();
+        //this.context.strokeStyle = obj.color;
+        //this.context.lineWidth = (this.cell_height / 2) * obj.size;
 
         for (var i = 0; i < obj.pointList.length; i++) {
             var cell = this.grid_matrix[obj.pointList[i].y][obj.pointList[i].x];
@@ -233,7 +235,8 @@ class Grid {
         }
 
         this.context.stroke();
-        this.context.closePath();
+        //this.context.closePath();
+
     }
 
     updateGraphics() {
@@ -712,6 +715,7 @@ class Grid {
         console.log("Visibility Graph Method");
 
         // Variables setup
+        this.obstacle_edges_names = [];
         this.obstacle_edges_map = [];
         for (var i = 0; i < this.size_x; i++) {
             var l = []
@@ -722,6 +726,19 @@ class Grid {
         } 
 
         this.addAllObstaclesEdges();
+
+        var point_names = this.obstacle_edges_names.concat('start').concat('end');
+
+        var i, j;
+        for (i = 0; i < point_names.length; i++) {
+            for (j = i; j < point_names.length; j++) {
+                var path = this.evaluatePathWithArgs(point_names[i], point_names[j]);
+                this.addPath("path"+i+j, path);
+            }
+        }
+
+        //var pointList = this.evaluatePathWithArgs("start", "end");
+        //this.addPath("vgtest", pointList);
     }
 
     addAllObstaclesEdges() {
@@ -757,9 +774,54 @@ class Grid {
             else if (this.wall_map[x + element[0]][y] == 0 && this.wall_map[x][y + element[1]] == 0) {
                 if (this.obstacle_edges_map[x+element[0]][y+element[1]] == 0) {
                     this.addCircle('oe'+ (x + element[0]) + (y + element[1]), grid.MEDIUM, x + element[0], y + element[1], grid.OBSTACLE_EDGE_COLOR);
+                    this.obstacle_edges_names.push('oe'+ (x + element[0]) + (y + element[1]));
                     this.obstacle_edges_map[x + element[0]][y + element[1]] = 1;
                 }
             }         
         });
+    }
+
+    evaluatePathWithArgs(start_name, end_name) {
+        if (grid.objects[start_name] && grid.objects[end_name]) {
+            var pointList = [];
+            pointList.push({
+                x: grid.objects[start_name].x,
+                y: grid.objects[start_name].y
+            })
+            var last = grid.objects[start_name]
+            var x, y;
+            while (last.x != grid.objects[end_name].x || last.y != grid.objects[end_name].y) {
+                if (last.x < grid.objects[end_name].x)
+                    x = last.x + 1
+                else if (last.x == grid.objects[end_name].x)
+                    x = last.x
+                else x = last.x - 1
+
+                if (last.y < grid.objects[end_name].y)
+                    y = last.y + 1
+                else if (last.y == grid.objects[end_name].y)
+                    y = last.y
+                else y = last.y - 1
+
+                pointList.push({
+                    x: x,
+                    y: y
+                })
+                last.x = x;
+                last.y = y;
+            }
+
+            grid.setObjectPosition(start_name, pointList[0].x, pointList[0].y);
+            return pointList;
+        }
+
+        return null;
+    }
+
+
+    logObjectNames() {
+        for (var key in this.objects) {
+            console.log(key);
+        }
     }
 }
