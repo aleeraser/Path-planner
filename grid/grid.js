@@ -557,7 +557,7 @@ class Grid {
                 console.log("wall")
                 path.push(step);
                 var lastStep = dummyPath[ this.isInPath(dummyPath,step)-1];
-                path = this.cirgumnavigate(lastStep, step, path, dummyPath)
+                path = this.circumnavigate(lastStep, step, path, dummyPath)
                 console.log("raggirato")
                 var last = path[path.length-1]
                 i = this.isInPath(dummyPath, last) -1;
@@ -567,12 +567,11 @@ class Grid {
         return path
     }
 
-    isInPath(path, step){
+    isInPath(path, step){ //indeex of 
         var r = -1;
         for (var i=0; i<path.length; i++){   
             var el = path[i];
             if (el.x == step.x && el.y==step.y){
-                console.log("FOUND!!!!!!!!!!!!!!")
                 r = i;
                 break;
             }
@@ -580,7 +579,7 @@ class Grid {
         return r;
     }
  
-    cirgumnavigate(lastStep, obstacle, newPath, oldPath){
+    circumnavigate(lastStep, obstacle, newPath, oldPath){
         console.log(lastStep);
         console.log(obstacle)
         var dir = "";
@@ -625,12 +624,12 @@ class Grid {
         newPath.push(newStep)
         console.log(newStep)
         if ( this.wall_map[newStep.x][newStep.y] != 1 ){
-            if (this.isInPath(oldPath,newStep) != -1)
+            if (this.isInPath(oldPath, newStep) != -1 && this.isInPath(newPath, newStep)== newPath.length -1 )
                 return newPath
-            return this.cirgumnavigate(newStep, obstacle, newPath, oldPath);
+            return this.circumnavigate(newStep, obstacle, newPath, oldPath);
         }
         else 
-            return this.cirgumnavigate(lastStep, newStep, newPath, oldPath)
+            return this.circumnavigate(lastStep, newStep, newPath, oldPath)
     }
 
     // MOUSE HANDLING
