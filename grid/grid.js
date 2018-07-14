@@ -38,6 +38,7 @@ class Grid {
         this.END_COLOR = '#ff0000';
         this.LINE_COLOR = '#b18ec5';
         this.PATH_COLOR = '#b18ec5';
+        this.BEST_PATH_COLOR = 'green';
         this.CELL_COLOR = this.BG_COLOR;
         this.OBSTACLE_EDGE_COLOR = '#996600';
 
@@ -347,6 +348,15 @@ class Grid {
             _name = 'path' + this.n_path++;
 
         this.addLine(_name, grid.SMALLER, this.PATH_COLOR, pointList);
+    }
+
+    addBestPath(name = null, pointList) {
+        var _name = name;
+
+        if (!_name)
+            _name = 'path' + this.n_path++;
+
+        this.addLine(_name, grid.SMALL, this.BEST_PATH_COLOR, pointList);
     }
 
     removePath(name) {
@@ -735,11 +745,20 @@ class Grid {
         for (i = 0; i < point_names.length; i++) {
             for (j = i+1; j < point_names.length; j++) {
                 var p = this.evaluatePathWithArgs(point_names[i], point_names[j]);
-                single_paths.push({name: 'singlepath' + i + j, path: p});
+
+                // Start & End are the names of the vertices but the path can actually be used in both directions
+                single_paths.push(
+                    {
+                        name: 'singlepath-' + point_names[i] + '-' + point_names[j], 
+                        path: p,
+                        start: point_names[i],
+                        end: point_names[j]
+                    });
             }
         }
 
         var free_single_paths = []; 
+
         // For each single_path check if it goes through obstacles
         single_paths.forEach(sp => {
             var ok = true;
@@ -754,12 +773,70 @@ class Grid {
             }
         })
 
+        // For each path with no obstacle draw the corrisponding line in the grid
+        // Also create a dictionary using its name
+        var fsp_dict = {};
         free_single_paths.forEach(fsp => {
             this.addPath(fsp.name, fsp.path);
+            fsp_dict[fsp.name] = fsp;
         })
-        //var pointList = this.evaluatePathWithArgs("start", "end");
-        //this.addPath("vgtest", pointList);
+      
+        // Now translate single paths to a graph form
+        // Each single path is an edge
+        var map = {}
+
+        free_single_paths.forEach(fsp => {
+            
+            // First time, initialize node in graph
+            if (map[fsp.start] == null) {
+                map[fsp.start] = {}
+            }
+            if (map[fsp.end] == null) {
+                map[fsp.end] = {}
+            }
+
+            // Add bidirectional edge, weighted by the lenght of the path
+            map[fsp.start][fsp.end] = fsp.path.length;
+            map[fsp.end][fsp.start] = fsp.path.length;
+        })
+
+        // Shortest is a list of obstacle_vertex names
+        var graph = new Graph(map);
+        var shortest = graph.findShortestPath('start', 'end');
+        console.log(shortest);
+
+        // In fsp_dict the singlepath name is used as key
+        var i;
+        var shortest_path_point_list = []
+        
+        // Insert start
+        shortest_path_point_list.push({
+            x: grid.objects['start'].x,
+            y: grid.objects['start'].y
+        });
+
+        for (i = 1; i < shortest.length; i++) {
+            // TODO: Serve modo un po piu elegante magari
+            // Nella creazione del nome non so quale punto è stato messo prima... Li provo entrambi.
+            // Se lo uso al contrario i punti del path vanno usati in ordine contrario (reverse)
+            var sp_name_v1 = 'singlepath-' + shortest[i-1] + '-' + shortest[i];
+            var sp_name_v2 = 'singlepath-' + shortest[i] + '-' + shortest[i-1];
+            var point_list;
+            if (fsp_dict[sp_name_v1]) 
+                point_list = fsp_dict[sp_name_v1].path;
+            else
+                point_list = fsp_dict[sp_name_v2].path.reverse();
+
+            point_list.slice(1).forEach( point => {
+                shortest_path_point_list.push(point);
+            })
+            console.log(point_list);
+        }
+
+        console.log(shortest_path_point_list);
+        this.addBestPath('best', shortest_path_point_list);
     }
+
 
     addAllObstaclesVertex() {
         // Add obstacles edges
@@ -793,8 +870,9 @@ class Grid {
 
             else if (this.wall_map[x + element[0]][y] == 0 && this.wall_map[x][y + element[1]] == 0 && this.wall_map[x + element[0]][y + element[1]] == 0) {
                 if (this.obstacle_vertex_map[x+element[0]][y+element[1]] == 0) {
-                    this.addCircle('ov'+ (x + element[0]) + (y + element[1]), grid.MEDIUM, x + element[0], y + element[1], grid.OBSTACLE_EDGE_COLOR);
-                    this.obstacle_vertex_names.push('ov'+ (x + element[0]) + (y + element[1]));
+                    var obstacle_vertex_name = 'ov' + '_' + (x + element[0]) + '_' + (y + element[1]);
+                    this.addCircle(obstacle_vertex_name, grid.MEDIUM, x + element[0], y + element[1], grid.OBSTACLE_EDGE_COLOR);
+                    this.obstacle_vertex_names.push(obstacle_vertex_name);
                     this.obstacle_vertex_map[x + element[0]][y + element[1]] = 1;
                 }
             }         
