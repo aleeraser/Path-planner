@@ -4,7 +4,7 @@
 
 .slider {
     -webkit-appearance: none;
-    width: 100%; 
+    width: 100%;
     background: #d3d3d3;
     outline: none;
     opacity: 0.7;
@@ -21,7 +21,7 @@
     appearance: none;
     width: 1em;
     height: 1em;
-    background:#142b3f;
+    background: #142b3f;
     cursor: pointer;
 }
 
@@ -31,4 +31,3 @@
     background: #142b3f;
     cursor: pointer;
 }
-

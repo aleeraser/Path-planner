@@ -10,7 +10,7 @@
 </head>
 
 <body>
-    <div style='margin:0.1em;' class = "parentDiv">
+    <div style='margin:0.1em;' class="parentDiv">
         <canvas id="canvas" style="border:1px solid teal;">
         </canvas>
         <div id="settings">
@@ -19,7 +19,7 @@
             <p> Planning method:</p>
             <select class="form-control settingSelect" id="methodSelect">
                 <option>Visibility Graph</option>
-                
+
             </select>
             </br>
             <button type="button" class="btn btn-default" onclick="redrawGrid()">Set and Redraw</button>
@@ -61,7 +61,9 @@
 
         }
 
-        var side_length = 500, cell_number = 30, cell_spacing = 0;
+        var side_length = 500,
+            cell_number = 30,
+            cell_spacing = 0;
 
         // Create class passing canvas object id
         initGrid();
@@ -71,7 +73,6 @@
         slider.oninput = function () {
             cell_number = this.value;
         }
-
     </script>
 </body>
 
