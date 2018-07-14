@@ -805,6 +805,12 @@ class Grid {
         var shortest = graph.findShortestPath('start', 'end');
         console.log(shortest);
 
+        // Null means no path available
+        if (shortest == null) {
+            alert('No path found');
+            return;
+        }
+
         // In fsp_dict the singlepath name is used as key
         var i;
         var shortest_path_point_list = []
