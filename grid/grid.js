@@ -72,6 +72,9 @@ class Grid {
             this.relocateStartEnd(cell);
         };
 
+
+        this.adjacency_graph = null;
+
     }
 
 
@@ -167,7 +170,7 @@ class Grid {
                     break;
 
                 default:
-                    console.log('ERROR: Uknown object type');
+                    console.error('ERROR: Uknown object type');
             }
         }
     }
@@ -251,25 +254,25 @@ class Grid {
     // OBJECTS CREATION/DESTRUCTION UTILS
     addObj(name, size, cell_x, cell_y, color, type, pointList) {
         if (this.objects == null) {
-            console.log('ERROR: Grid has to be generated yet');
+            console.error('ERROR: Grid has to be generated yet');
             return;
         }
 
         if (this.objects[name]) {
-            console.log('ERROR: Name already used by another object');
+            console.error('ERROR: Name "' + name + '"already used by another object');
             return;
         }
 
 
         if (type != this.LINE && cell_x >= this.size_x || cell_y >= this.size_y) {
-            console.log('ERROR: Positioning outside of the grid');
+            console.error('ERROR: point (' + cell_x + ', ' + cell_y + ') outside of the grid.\n\tGrid size: ' + this.size_x + 'x' + this.size_y + '.');
             return;
         }
 
         if (type == this.LINE) {
             for (var i = 0; i < pointList.length; i++) {
                 if (pointList[i].x >= this.size_x || pointList[i].y >= this.size_y) {
-                    console.log('ERROR: Point in pointlist outside of the grid');
+                    console.error('ERROR: Point (' + pointList[i].x + ', ' + pointList[i].y + ') in pointlist outside of the grid.\n\tGrid size: ' + this.size_x + 'x' + this.size_y + '.');
                     return;
                 }
             }
@@ -292,7 +295,7 @@ class Grid {
 
     removeObj(name) {
         if (this.objects == null) {
-            console.log('ERROR: Grid has to be generated yet');
+            console.error('ERROR: Grid has to be generated yet');
             return;
         }
 
@@ -314,14 +317,16 @@ class Grid {
         }
     }
 
-    removeWall(cell_x, cell_y) {
+    removeWall(cell_x, cell_y, printDebug = true) {
         if (this.cellHasWall(cell_x, cell_y)) {
             var name = 'w' + cell_x + cell_y;
 
             this.wall_map[cell_x][cell_y] = 0;
             this.removeObj(name);
         } else {
-            console.log("ERROR: trying to remove wall on (" + cell_x + ", " + cell_y + "), but no wall was found");
+            if (printDebug) {
+                console.error("ERROR: trying to remove wall on (" + cell_x + ", " + cell_y + "), but no wall was found");
+            }
         }
     }
 
@@ -341,22 +346,15 @@ class Grid {
         this.addObj(name, size, null, null, color, this.LINE, pointList);
     }
 
-    addPath(name = null, pointList) {
+    addPath(pointList, name = null, gridSize = grid.SMALLER, color = this.PATH_COLOR) {
         var _name = name;
 
-        if (!_name)
-            _name = 'path' + this.n_path++;
-
-        this.addLine(_name, grid.SMALLER, this.PATH_COLOR, pointList);
-    }
-
-    addBestPath(name = null, pointList) {
-        var _name = name;
+        this.n_path++;
 
         if (!_name)
-            _name = 'path' + this.n_path++;
+            _name = 'path' + this.n_path;
 
-        this.addLine(_name, grid.SMALL, this.BEST_PATH_COLOR, pointList);
+        this.addLine(_name, gridSize, color, pointList);
     }
 
     removePath(name) {
@@ -367,7 +365,7 @@ class Grid {
                 delete this.objects[name];
                 this.n_path--;
             } else {
-                console.log("ERROR: trying to remove path '" + name + "', but its type is actually " + this.objects[name].type);
+                console.error("ERROR: trying to remove path '" + name + "', but its type is actually " + this.objects[name].type);
             }
         } else {
             console.log("WARNING: path '" + name + "' not found while trying to remove it");
@@ -380,7 +378,7 @@ class Grid {
         if (obj = this.objects[name]) {
 
             if (obj.type != this.CIRCLE && obj.type != this.RECT) {
-                console.log('ERROR: Impossible to move this type of object');
+                console.error('ERROR: Impossible to move this type of object');
                 return;
             }
 
@@ -405,12 +403,12 @@ class Grid {
                     break;
 
                 default:
-                    console.log('ERROR: Direction unknown');
+                    console.error('ERROR: Direction unknown');
             }
 
             // Check validity of movement
             if (obj.x < 0 || obj.x >= this.size_x || obj.y < 0 || obj.y >= this.size_y) {
-                console.log('ERROR: Invalid new position');
+                console.error('ERROR: Invalid new position');
                 obj.x = old_x;
                 obj.y = old_y;
             }
@@ -420,7 +418,7 @@ class Grid {
 
         }
 
-        console.log('ERROR: Object name not found');
+        console.error('ERROR: Object name not found');
     }
 
     setObjectPosition(name, x, y) {
@@ -433,7 +431,7 @@ class Grid {
     // Generate the grid based on setting specified before
     generate() {
         if (this.size_x == null || this.size_y == null) {
-            console.log('ERROR: Missing size parameters');
+            console.error('ERROR: Missing size parameters');
             return false;
         }
 
@@ -443,7 +441,7 @@ class Grid {
 
         this.grid_matrix = [];
         this.wall_map = [];
-        console.log(this.size_y)
+
         for (var i = 0; i < this.size_y; i++) {
             this.wall_map[i] = [];
 
@@ -485,7 +483,7 @@ class Grid {
             return null;
         }
 
-        console.log('Cell ' + cell_x + ' - ' + cell_y);
+        // console.log('Cell ' + cell_x + ' - ' + cell_y);
 
         return {
             x: cell_x,
@@ -505,9 +503,10 @@ class Grid {
             // var path_y = Math.abs(grid.objects['start'].y - grid.objects['end'].y);
 
             //this.evaluatePath();
-            this.visibilityGraph();
+            // this.visibilityGraph();
+            this.findPath();
         } else {
-            grid.removePath('test');
+            grid.removePath('decomposition');
 
             if (!grid.objects['start'])
                 grid.addCircle('start', grid.MEDIUM_SMALL, cell.x, cell.y, grid.START_COLOR);
@@ -518,128 +517,6 @@ class Grid {
 
             grid.positionEndPoint = true;
         }
-    }
-
-    evaluatePath() {
-        if (grid.objects['start'] && grid.objects['end']) {
-            var pointList = [];
-            pointList.push({
-                x: grid.objects['start'].x,
-                y: grid.objects['start'].y
-            })
-            var last = grid.objects['start']
-            var x, y;
-            while (last.x != grid.objects['end'].x || last.y != grid.objects['end'].y) {
-                if (last.x < grid.objects['end'].x)
-                    x = last.x + 1
-                else if (last.x == grid.objects['end'].x)
-                    x = last.x
-                else x = last.x - 1
-
-                if (last.y < grid.objects['end'].y)
-                    y = last.y + 1
-                else if (last.y == grid.objects['end'].y)
-                    y = last.y
-                else y = last.y - 1
-
-                pointList.push({
-                    x: x,
-                    y: y
-                })
-                last.x = x;
-                last.y = y;
-            }
-
-
-            if (grid.objects['test'])
-                grid.removePath('test');
-            pointList = this.bug2(pointList);
-            grid.addPath('test', pointList);
-            grid.setObjectPosition('start', pointList[0].x, pointList[0].y);
-        }
-    }
-
-
-    bug2(dummyPath) {
-        var path = [];
-        for (var i = 0; i < dummyPath.length; i++) {
-            var step = dummyPath[i];
-            if (!this.wall_map[step.x][step.y]) {
-                console.log(step)
-                path.push(step);
-            } else {
-                console.log("wall")
-                path.push(step);
-                var lastStep = dummyPath[this.isInPath(dummyPath, step) - 1];
-                path = this.cirgumnavigate(lastStep, step, path, dummyPath)
-                console.log("raggirato")
-                var last = path[path.length - 1]
-                i = this.isInPath(dummyPath, last) - 1;
-                console.log("--- " + i);
-            }
-        }
-        return path
-    }
-
-    isInPath(path, step) {
-        var r = -1;
-        for (var i = 0; i < path.length; i++) {
-            var el = path[i];
-            if (el.x == step.x && el.y == step.y) {
-                console.log("FOUND!!!!!!!!!!!!!!")
-                r = i;
-                break;
-            }
-        }
-        return r;
-    }
-
-    cirgumnavigate(lastStep, obstacle, newPath, oldPath) {
-        console.log(lastStep);
-        console.log(obstacle)
-        var dir = "";
-        var newPath = newPath.slice(0, this.isInPath(newPath, lastStep) + 1)
-        if (lastStep.y > obstacle.y)
-            dir += "N";
-        else if (lastStep.y < obstacle.y)
-            dir += "S";
-        if (lastStep.x > obstacle.x)
-            dir += "O";
-        else if (lastStep.x < obstacle.x)
-            dir += "E";
-
-        var newStep;
-        console.log(dir)
-        if (dir == "E" || dir == "SE") {
-            newStep = {
-                x: lastStep.x,
-                y: lastStep.y + 1
-            }
-        } else if (dir == "NE" || dir == "N") {
-            newStep = {
-                x: lastStep.x + 1,
-                y: lastStep.y
-            }
-        } else if (dir == "NO" || dir == "O") {
-            newStep = {
-                x: lastStep.x,
-                y: lastStep.y - 1
-            }
-        } else if (dir == "SO" || dir == "S") {
-            newStep = {
-                x: lastStep.x - 1,
-                y: lastStep.y
-            }
-        }
-
-        newPath.push(newStep)
-        console.log(newStep)
-        if (this.wall_map[newStep.x][newStep.y] != 1) {
-            if (this.isInPath(oldPath, newStep) != -1)
-                return newPath
-            return this.cirgumnavigate(newStep, obstacle, newPath, oldPath);
-        } else
-            return this.cirgumnavigate(lastStep, newStep, newPath, oldPath)
     }
 
     // MOUSE HANDLING
@@ -657,7 +534,7 @@ class Grid {
 
                             if (grid.cellHasWall(cell.x, cell.y))
                                 grid.mouseDragAction = function (x, y) {
-                                    grid.removeWall(x, y);
+                                    grid.removeWall(x, y, false);
                                 };
                             else
                                 grid.mouseDragAction = function (x, y) {
@@ -720,88 +597,80 @@ class Grid {
 
 
 
-    // Visibility Graph Methods
-    visibilityGraph() {
-        console.log("Visibility Graph Method");
+    gridDecomposition() {
+        var adjacency_matrix = {};
 
-        // Variables setup
-        this.obstacle_vertex_names = [];
-        this.obstacle_vertex_map = [];
-        for (var i = 0; i < this.size_x; i++) {
-            var l = []
-            for (var j = 0; j < this.size_y; j++) {
-                l.push(0);
-            }
-            this.obstacle_vertex_map.push(l);
-        }
+        // iterate over all cells
+        for (var i = 0; i < this.grid_matrix.length; i++) {
+            for (var j = 0; j < this.grid_matrix[i].length; j++) {
 
-        this.addAllObstaclesVertex();
+                // console.log("Computing for cell (" + i + ", " + j + ").");
 
-        var point_names = this.obstacle_vertex_names.concat('start').concat('end');
+                // skip wall cells
+                if (!this.cellHasWall(i, j)) {
 
-        var i, j;
-        var single_paths = [];
+                    var source = i + "_" + j;
 
-        for (i = 0; i < point_names.length; i++) {
-            for (j = i + 1; j < point_names.length; j++) {
-                var p = this.evaluatePathWithArgs(point_names[i], point_names[j]);
+                    adjacency_matrix[source] = {};
 
-                // Start & End are the names of the vertices but the path can actually be used in both directions
-                single_paths.push({
-                    name: 'singlepath-' + point_names[i] + '-' + point_names[j],
-                    path: p,
-                    start: point_names[i],
-                    end: point_names[j]
-                });
-            }
-        }
+                    // iterate over adjacent cells
+                    for (var k = i - 1; k <= i + 1; k++) {
+                        for (var l = j - 1; l <= j + 1; l++) {
 
-        var free_single_paths = [];
+                            // console.log("\tChecking (" + k + ", " + l + ")...");
 
-        // For each single_path check if it goes through obstacles
-        single_paths.forEach(sp => {
-            var ok = true;
-            sp.path.forEach(step => {
-                if (this.wall_map[step.x][step.y] == 1) {
-                    ok = false;
-                    return;
+                            // check that target is inside the map
+                            if (k >= 0 && k < this.size_x && l >= 0 && l < this.size_y) {
+
+                                // exclude the cell itself
+                                if (!(k == i && l == j)) {
+
+                                    // check that target has not a wall over it
+                                    if (!this.cellHasWall(k, l)) {
+                                        // var target = "c_" + k + "_" + l;
+                                        var target = k + "_" + l;
+
+                                        // console.log("\t\t\tAdding cell (" + k + ", " + l + ") to adjacency graph.");
+
+                                        // add cell to adjacency graph
+                                        adjacency_matrix[source][target] = k == i || l == j ? 1 : 2;
+
+                                    } else {
+                                        // console.log("\t\t\tCell (" + k + ", " + l + ") has a wall.");
+                                    }
+                                } else {
+                                    // console.log("\t\tCell (" + k + ", " + l + ") is the cell itself (" + i + ", " + j + "). Skipping...");
+                                }
+
+                            } else {
+                                // console.log("\t\tCell (" + k + ", " + l + ") is outside map.");
+                            }
+                        }
+                    }
+
+                } else {
+                    // console.log("\tWall in (" + i + ", " + j + ").");
                 }
-            })
-            if (ok) {
-                free_single_paths.push(sp);
+
+                // console.log("\n\n");
             }
-        })
+        }
 
-        // For each path with no obstacle draw the corrisponding line in the grid
-        // Also create a dictionary using its name
-        var fsp_dict = {};
-        free_single_paths.forEach(fsp => {
-            this.addPath(fsp.name, fsp.path);
-            fsp_dict[fsp.name] = fsp;
-        })
+        console.log(adjacency_matrix);
 
-        // Now translate single paths to a graph form
-        // Each single path is an edge
-        var map = {}
 
-        free_single_paths.forEach(fsp => {
+        this.adjacency_graph = new Graph(adjacency_matrix);
+    }
 
-            // First time, initialize node in graph
-            if (map[fsp.start] == null) {
-                map[fsp.start] = {}
-            }
-            if (map[fsp.end] == null) {
-                map[fsp.end] = {}
-            }
 
-            // Add bidirectional edge, weighted by the lenght of the path
-            map[fsp.start][fsp.end] = fsp.path.length;
-            map[fsp.end][fsp.start] = fsp.path.length;
-        })
 
-        // Shortest is a list of obstacle_vertex names
-        var graph = new Graph(map);
-        var shortest = graph.findShortestPath('start', 'end');
+    findPath() {
+        this.gridDecomposition();
+
+        var start_key = grid.objects['start'].x + "_" + grid.objects['start'].y;
+        var end_key = grid.objects['end'].x + "_" + grid.objects['end'].y;
+
+        var shortest = this.adjacency_graph.findShortestPath(start_key, end_key);
         console.log(shortest);
 
         // Null means no path available
@@ -810,119 +679,17 @@ class Grid {
             return;
         }
 
-        // In fsp_dict the singlepath name is used as key
-        var i;
-        var shortest_path_point_list = []
+        var pointList = [];
 
-        // Insert start
-        shortest_path_point_list.push({
-            x: grid.objects['start'].x,
-            y: grid.objects['start'].y
-        });
-
-        for (i = 1; i < shortest.length; i++) {
-            // TODO: Serve modo un po piu elegante magari
-            // Nella creazione del nome non so quale punto è stato messo prima... Li provo entrambi.
-            // Se lo uso al contrario i punti del path vanno usati in ordine contrario (reverse)
-            var sp_name_v1 = 'singlepath-' + shortest[i - 1] + '-' + shortest[i];
-            var sp_name_v2 = 'singlepath-' + shortest[i] + '-' + shortest[i - 1];
-            var point_list;
-            if (fsp_dict[sp_name_v1])
-                point_list = fsp_dict[sp_name_v1].path;
-            else
-                point_list = fsp_dict[sp_name_v2].path.reverse();
-
-            point_list.slice(1).forEach(point => {
-                shortest_path_point_list.push(point);
-            })
-            console.log(point_list);
-        }
-
-        console.log(shortest_path_point_list);
-        this.addBestPath('best', shortest_path_point_list);
-    }
-
-
-    addAllObstaclesVertex() {
-        // Add obstacles edges
-        var i = 0,
-            j = 0;
-        for (i = 0; i < this.wall_map.length; i++) {
-            var row = this.wall_map[i];
-            for (j = 0; j < row.length; j++) {
-                if (row[j] == 1) {
-                    this.addObstacleVertex(i, j);
-                }
-            }
-        }
-    }
-
-    // Check the four diagonal point of the specified cell, and adds edges if not occupied
-    addObstacleVertex(x, y) {
-        var diagonalPositions = [
-            [1, 1],
-            [1, -1],
-            [-1, 1],
-            [-1, -1]
-        ];
-
-        diagonalPositions.forEach(element => {
-
-            if (x + element[0] >= this.size_x || x + element[0] < 0 || y + element[1] >= this.size_y || y + element[1] < 0) {
-                // Outside the map
-                return;
-            } else if (this.wall_map[x + element[0]][y] == 0 && this.wall_map[x][y + element[1]] == 0 && this.wall_map[x + element[0]][y + element[1]] == 0) {
-                if (this.obstacle_vertex_map[x + element[0]][y + element[1]] == 0) {
-                    var obstacle_vertex_name = 'ov' + '_' + (x + element[0]) + '_' + (y + element[1]);
-                    this.addCircle(obstacle_vertex_name, grid.MEDIUM, x + element[0], y + element[1], grid.OBSTACLE_EDGE_COLOR);
-                    this.obstacle_vertex_names.push(obstacle_vertex_name);
-                    this.obstacle_vertex_map[x + element[0]][y + element[1]] = 1;
-                }
-            }
-        });
-    }
-
-    evaluatePathWithArgs(start_name, end_name) {
-        if (grid.objects[start_name] && grid.objects[end_name]) {
-            var pointList = [];
+        shortest.forEach(node => {
             pointList.push({
-                x: grid.objects[start_name].x,
-                y: grid.objects[start_name].y
-            })
-            var last = grid.objects[start_name]
-            var x, y;
-            while (last.x != grid.objects[end_name].x || last.y != grid.objects[end_name].y) {
-                if (last.x < grid.objects[end_name].x)
-                    x = last.x + 1
-                else if (last.x == grid.objects[end_name].x)
-                    x = last.x
-                else x = last.x - 1
+                x: parseInt(node.split('_')[0]),
+                y: parseInt(node.split('_')[1])
+            });
+        })
 
-                if (last.y < grid.objects[end_name].y)
-                    y = last.y + 1
-                else if (last.y == grid.objects[end_name].y)
-                    y = last.y
-                else y = last.y - 1
-
-                pointList.push({
-                    x: x,
-                    y: y
-                })
-                last.x = x;
-                last.y = y;
-            }
-
-            grid.setObjectPosition(start_name, pointList[0].x, pointList[0].y);
-            return pointList;
-        }
-
-        return null;
+        this.addPath(pointList, "decomposition");
     }
 
 
-    logObjectNames() {
-        for (var key in this.objects) {
-            console.log(key);
-        }
-    }
 }

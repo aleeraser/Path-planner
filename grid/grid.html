@@ -18,7 +18,7 @@
             <input type="range" min="1" max="60" value="30" class="slider" id="cellNumber"></input>
             <p> Planning method:</p>
             <select class="form-control settingSelect" id="methodSelect">
-                <option>Visibility Graph</option>
+                <option>Cellular Decomposition</option>
 
             </select>
             </br>
@@ -34,7 +34,7 @@
         function redrawGrid() {
             grid.setSize(cell_number, cell_number);
             grid.generate();
-            //initGrid();
+            // initGrid();
         }
 
         function initGrid() {
