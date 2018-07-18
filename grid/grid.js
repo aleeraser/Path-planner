@@ -726,6 +726,8 @@ class Grid {
 
         // Variables setup
         this.obstacle_vertex_names = [];
+
+        // Obstacle map, initialized to 0 in every cell
         this.obstacle_vertex_map = [];
         for (var i = 0; i < this.size_x; i++) {
             var l = []
@@ -735,13 +737,23 @@ class Grid {
             this.obstacle_vertex_map.push(l);
         } 
 
-        this.addAllObstaclesVertex();
 
+        if (document.getElementById('methodSelect').selectedIndex == 0) {
+            // Fills the obstacle_vertex_map -- Visibility Graph
+            this.addAllObstaclesVertex();
+        }
+        else {
+            // Random fills obstacle_vertex_map -- Probabilsitic Roadmap
+            this.randomObstacleVertex();
+        }
+
+        // All obstacle vertex plus the start and end position
         var point_names = this.obstacle_vertex_names.concat('start').concat('end');
 
         var i, j;
         var single_paths = [];
 
+        // For each pair of points calculate the shortest path
         for (i = 0; i < point_names.length; i++) {
             for (j = i+1; j < point_names.length; j++) {
                 var p = this.evaluatePathWithArgs(point_names[i], point_names[j]);
@@ -758,6 +770,8 @@ class Grid {
         }
 
         var free_single_paths = []; 
+        // Also create a dictionary using its name
+        var fsp_dict = {};
 
         // For each single_path check if it goes through obstacles
         single_paths.forEach(sp => {
@@ -768,17 +782,12 @@ class Grid {
                     return;
                 }
             })
+            // If path is ok adds it to free_single_path
             if (ok) {
                free_single_paths.push(sp);
+               this.addPath(sp.name, sp.path);
+               fsp_dict[sp.name] = sp;
             }
-        })
-
-        // For each path with no obstacle draw the corrisponding line in the grid
-        // Also create a dictionary using its name
-        var fsp_dict = {};
-        free_single_paths.forEach(fsp => {
-            this.addPath(fsp.name, fsp.path);
-            fsp_dict[fsp.name] = fsp;
         })
       
         // Now translate single paths to a graph form
@@ -883,6 +892,29 @@ class Grid {
                 }
             }         
         });
+    }
+
+    randomObstacleVertex() {
+        var SAMPLE_NUM = this.size_x;
+        var MAX_TRIES = this.size_x * 3;
+        var i = 0; 
+        var n = 0;
+        var x, y;
+
+        while (i < SAMPLE_NUM && n < MAX_TRIES) {
+            x = Math.floor(Math.random() * this.size_x);
+            y = Math.floor(Math.random() * this.size_y);
+
+            if (this.wall_map[x][y] == 0 && this.obstacle_vertex_map[x][y] == 0) {
+                this.obstacle_vertex_map[x][y] = 1;
+                var obstacle_vertex_name = "random_" + x + "_" + y;
+                this.addCircle(obstacle_vertex_name, grid.MEDIUM, x, y, grid.OBSTACLE_EDGE_COLOR);
+                this.obstacle_vertex_names.push(obstacle_vertex_name);
+                i++;
+            }
+
+            n++;
+        }
     }
 
     evaluatePathWithArgs(start_name, end_name) {
