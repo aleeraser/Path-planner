@@ -18,8 +18,9 @@
             <input type="range" min="1" max="60" value="30" class="slider" id="cellNumber"></input>
             <p> Planning method:</p>
             <select class="form-control settingSelect" id="methodSelect">
-                <option>Bug2</option>
                 <option>Bug1</option>
+                <option>Bug2</option>
+                <option>Tangent Bug</option>
             </select>
             </br>
             <button type="button" class="btn btn-default" onclick="redrawGrid()">Set and Redraw</button>
@@ -58,6 +59,8 @@
             grid.setOnCellRightClick(function (cell) {
                 grid.relocateStartEnd(cell);
             })
+
+            document.getElementById("methodSelect").onchange = function () { grid.evaluatePath() };
 
         }
 

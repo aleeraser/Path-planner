@@ -306,6 +306,7 @@ class Grid {
 
             this.addRect(name, this.MAX, cell_x, cell_y, this.WALL_COLOR);
             this.wall_map[cell_x][cell_y] = 1;
+            this.evaluatePath();
         }
     }
 
@@ -325,6 +326,7 @@ class Grid {
             this.addWall(cell_x, cell_y);
         else
             this.removeWall(cell_x, cell_y);
+        this.evaluatePath();
     }
 
     addCircle(name, size, cell_x, cell_y, color) {
@@ -505,7 +507,9 @@ class Grid {
         }
     }
 
-    findDummyPath(start, end){
+    findDummyPath(start, end) {
+        console.log(start)
+        console.log(end)
         var pointList = [];
         pointList.push({
             x: start.x,
@@ -543,16 +547,18 @@ class Grid {
         if (grid.objects['start'] && grid.objects['end']) {
             var pointList = this.findDummyPath(grid.objects['start'], grid.objects['end']);
             if (grid.objects['test'])
-            grid.removePath('test');
-            if (document.getElementById("methodSelect").value == "Bug1" )
+                grid.removePath('test');
+            if (document.getElementById("methodSelect").value == "Bug1")
                 pointList = this.bug1(pointList);
             else if (document.getElementById("methodSelect").value == "Bug2")
                 pointList = this.bug2(pointList);
+            else if (document.getElementById("methodSelect").value == "Tangent Bug")
+                pointList = this.tangentBug(pointList);
             grid.addPath('test', pointList);
             grid.setObjectPosition('start', pointList[0].x, pointList[0].y);
         }
     }
-    
+
     isInPath(path, step) { //index of 
         var r = -1;
         for (var i = 0; i < path.length; i++) {
@@ -565,7 +571,76 @@ class Grid {
         return r;
     }
 
-    bug1(dummyPath){
+    tangentBug(dummyPath) {
+        console.log("tangent bug");
+
+        var path = [];
+        for (var i = 0; i < dummyPath.length; i++) { //try to follow the dummy path
+            var range = this.rangeArea(dummyPath[i], 2);
+            var free = true;
+            var discontinuities = [];
+            for (var j = 0; j < range.length; j++) { //check if range area is free
+                if (this.isWall(range[j])) {
+                    discontinuities.push(range[j]); //the list of obstacles in range
+                    free = false;
+                }
+            }
+            if (free) { //if free follow the dummy path
+                path.push(dummyPath[i])
+            }
+            else {
+                var min;
+                var minDist = 100;
+                console.log("-------- ")
+                console.log(discontinuities);
+                for (var j = 0; j < discontinuities.length; j++) { //find the nearest discontinuity
+                    var toDisc = this.findDummyPath(dummyPath[i], discontinuities[j]);
+                    console.log("ok")
+                    var dist = this.findDummyPath(discontinuities[j], grid.objects['end']).length + toDisc.length //the distance is given by the sum of the distances between you and the discontinuity and between the discontinuity and the end
+                    if (dist < minDist) {
+                        min = discontinuities[j];
+                        minDist = dist;
+                    }
+                }
+                var toDisc = this.findDummyPath(dummyPath[i], min);
+                path = path.concat(toDisc);
+
+                //now boundary following , quando finisce quella devi modificare il dummy path e l'indice 
+                //heuristic to understand in which direction is better to turn around the obstacle
+                var dir = "anti";
+                if (Math.abs(this.objects["end"].x - this.objects["start"].x) > Math.abs(this.objects["end"].y - this.objects["start"].y)) { // i'm moving horizontally
+                    console.log('orizzontale')
+                    if ((toDisc[0].x < toDisc[1].x && toDisc[0].y > toDisc[1].y) || (toDisc[0].x > toDisc[1].x && toDisc[0].y < toDisc[1].y))
+                        dir = "or";
+                }
+                else{ // vertically
+                    if ((toDisc[0].x > toDisc[1].x && toDisc[0].y > toDisc[1].y) || (toDisc[0].x < toDisc[1].x && toDisc[0].y < toDisc[1].y))
+                        dir = "or";
+                }
+                console.log(dir)
+                return path.concat(this.findDummyPath(min, grid.objects['end']));
+                //problema tutti i punti di discontinuità hanno la stessa distanza, quindi prende sempre il primo
+            }
+        }
+        return dummyPath;
+    }
+
+    rangeArea(o, r) { //o is a point object, and r is the radio of the circonference ( in our case it will be a square, according to our distance definition, as the number of steps)
+        var range = [];
+        for (var i = 0; i < this.size_y; i++) {
+            for (var j = 0; j < this.size_x; j++) {
+                if (o.x - r <= i && i <= o.x + r && o.y - r <= j && j <= o.y + r) {
+                    range.push({
+                        x: i,
+                        y: j
+                    })
+                }
+            }
+        }
+        return range
+    }
+
+    bug1(dummyPath) {
         var path = [];
         for (var i = 0; i < dummyPath.length; i++) {
             var step = dummyPath[i];
@@ -578,8 +653,8 @@ class Grid {
                 path.push(step);
                 var lastStep = dummyPath[this.isInPath(dummyPath, step) - 1];
                 var res = {
-                    circumnavigation:[],
-                    dists:[]
+                    circumnavigation: [],
+                    dists: []
                 };
 
                 var dummy = this.findDummyPath(lastStep, this.objects['end']);
@@ -596,31 +671,30 @@ class Grid {
 
                 var minDist = Math.min(...res.dists);
                 console.log("min dist: " + minDist)
-                var nearest = res.circumnavigation[res.dists.indexOf(minDist)];
-                console.log("nearest: " + nearest);
-                var backToNearest = res.circumnavigation.slice(res.dists.indexOf(minDist), res.dists.length)
+                var nearest = res.circumnavigation[res.dists.lastIndexOf(minDist)];
+                console.log(nearest);
+                var backToNearest = res.circumnavigation.slice(res.dists.lastIndexOf(minDist), res.dists.length)
 
                 backToNearest.reverse();
                 console.log(backToNearest);
                 path = path.concat(res.circumnavigation);
-                path = path.concat(backToNearest.slice(1,backToNearest.length));
-                
+                path = path.concat(backToNearest.slice(1, backToNearest.length));
 
-                dummyPath = this.findDummyPath(nearest, this.objects['end']);   
+
+                dummyPath = this.findDummyPath(nearest, this.objects['end']);
                 console.log("raggirato");
-                i=0;
+                i = 0;
                 console.log("--- " + i);
             }
         }
         console.log(path);
         return path
     }
-    
 
-    circumnavigate1(lastStep, obstacle, end, obj) { //end è la destinazione finale, mi serve per la distanza, dists contiene le distanze lungo la circumnavigazione
-        console.log("last " )
+    followObs(lastStep, obstacle) {
+        console.log("last ")
         console.log(lastStep);
-        console.log("obs " )
+        console.log("obs ")
         console.log(obstacle);
         var dir = "";
         if (lastStep.y > obstacle.y)
@@ -659,26 +733,30 @@ class Grid {
                 y: lastStep.y
             }
         }
+        return newStep;
+    }
 
+    circumnavigate1(lastStep, obstacle, end, obj) { //end è la destinazione finale, mi serve per la distanza, dists contiene le distanze lungo la circumnavigazione
+        var newStep = this.followObs(lastStep, obstacle);
         var dummy = this.findDummyPath(newStep, end);
-        var dist = dummy.length; 
+        var dist = dummy.length;
         obj.circumnavigation.push(newStep);
         obj.dists.push(dist)
         console.log("new ");
         console.log(newStep);
         if (!this.isWall(newStep)) {
-            if (newStep.x == obj.circumnavigation[0].x && newStep.y == obj.circumnavigation[0].y  ){
+            if (newStep.x == obj.circumnavigation[0].x && newStep.y == obj.circumnavigation[0].y) {
                 //non sto mettendo l'ultimo step, controllare se è giusto
                 console.log(obj.dists)
-                return obj 
+                return obj
             }
             return this.circumnavigate1(newStep, obstacle, end, obj);
         }
         else
             obj.circumnavigation.pop();
-            obj.dists.pop();
-            console.log(newStep)
-            return this.circumnavigate1(lastStep, newStep, end, obj)
+        obj.dists.pop();
+        console.log(newStep)
+        return this.circumnavigate1(lastStep, newStep, end, obj)
     }
 
 
@@ -706,47 +784,8 @@ class Grid {
 
 
     circumnavigate2(lastStep, obstacle, newPath, oldPath) {
-        console.log(lastStep);
-        console.log(obstacle)
-        var dir = "";
+        var newStep = this.followObs(lastStep, obstacle);
         var newPath = newPath.slice(0, this.isInPath(newPath, lastStep) + 1)
-        if (lastStep.y > obstacle.y)
-            dir += "N";
-        else if (lastStep.y < obstacle.y)
-            dir += "S";
-        if (lastStep.x > obstacle.x)
-            dir += "O";
-        else if (lastStep.x < obstacle.x)
-            dir += "E";
-
-        var newStep;
-        console.log(dir)
-        if (dir == "E" || dir == "SE") {
-            newStep = {
-                x: lastStep.x,
-                y: lastStep.y + 1
-            }
-        }
-        else if (dir == "NE" || dir == "N") {
-            newStep = {
-                x: lastStep.x + 1,
-                y: lastStep.y
-            }
-        }
-
-        else if (dir == "NO" || dir == "O") {
-            newStep = {
-                x: lastStep.x,
-                y: lastStep.y - 1
-            }
-        }
-        else if (dir == "SO" || dir == "S") {
-            newStep = {
-                x: lastStep.x - 1,
-                y: lastStep.y
-            }
-        }
-
         newPath.push(newStep)
         console.log(newStep)
         if (!this.isWall(newStep)) {
