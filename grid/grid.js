@@ -798,9 +798,9 @@ class Grid {
     }
 
     isWall(patch) {
-        if (this.wall_map[patch.x][patch.y] == 1)
-            return true;
         if (patch.x < 0 || patch.y < 0 || patch.x >= this.size_x || patch.y >= this.size_y)
+            return true;
+        if (this.wall_map[patch.x][patch.y] == 1)
             return true;
         return false
     }
