@@ -606,8 +606,8 @@ class Grid {
                 for (var j = 0; j < discontinuities.length; j++) { //find the nearest discontinuity
                     var toDisc = this.findDummyPath(dummyPath[i], discontinuities[j]);
                     var dist = this.pathCost(this.findDummyPath(discontinuities[j], grid.objects['end'])) + this.pathCost(toDisc) //the distance is given by the sum of the distances between you and the discontinuity and between the discontinuity and the end
-                    for (var z = 0 ; z<toDisc.length-1; z++){ // check that the path to the discontinuity is free
-                        if(this.isWall(toDisc[z])) 
+                    for (var z = 0; z < toDisc.length - 1; z++) { // check that the path to the discontinuity is free
+                        if (this.isWall(toDisc[z]))
                             dist = 100;
                     }
                     if (dist < minDist) {
@@ -633,16 +633,16 @@ class Grid {
                         dir = "or";
                 }
                 console.log(dir)
-                this.boundaryFollow(toDisc[toDisc.length - 2], min, this.objects["end"],dir, path);
+                this.boundaryFollow(toDisc[toDisc.length - 2], min, this.objects["end"], dir, path);
                 dummyPath = this.findDummyPath(path[path.length - 1], this.objects["end"]);
-                i=0;
+                i = 0;
             }
         }
         return path;
     }
     //TODO evitare che find dummy path passi in diagonale tra due ostacoli!!!
-    boundaryFollow(last, obstacle, end, dir, path){
-        var newStep = this.followObs(last, obstacle);       
+    boundaryFollow(last, obstacle, end, dir, path) {
+        var newStep = this.followObs(last, obstacle, dir);
         if (!this.isWall(newStep)) {
             path.push(newStep);
             var dummy = this.findDummyPath(newStep, end);
@@ -650,20 +650,20 @@ class Grid {
             var free = true;
             for (var j = 0; j < range.length; j++) { //check if range area is free
                 if (this.isWall(range[j])) {
-                    if (this.isInPath(dummy, range[j]) != -1){ //if there are obstacles in range, but the dummy path is free follow the dummy path
+                    if (this.isInPath(dummy, range[j]) != -1) { //if there are obstacles in range, but the dummy path is free follow the dummy path
                         free = false;
                         break;
                     }
                 }
             }
-            if (free){ //nota se non ho mai il dummy path libero a distanza 2 mi fotto..
+            if (free) { //nota se non ho mai il dummy path libero a distanza 2 mi fotto..
                 return path
             }
             return this.boundaryFollow(newStep, obstacle, end, dir, path);
         }
         else
             console.log(newStep)
-            return this.boundaryFollow(last, newStep, end, dir, path);
+        return this.boundaryFollow(last, newStep, end, dir, path);
     }
 
 
@@ -676,7 +676,7 @@ class Grid {
             nears.push({ x: obs[i].x - 1, y: obs[i].y })
             nears.push({ x: obs[i].x, y: obs[i].y + 1 })
             nears.push({ x: obs[i].x, y: obs[i].y - 1 })
-            for (var j=0; j<nears.length; j++){
+            for (var j = 0; j < nears.length; j++) {
                 if (this.isInPath(obs, nears[j]) != -1)
                     count += 1
                 if (count == 2)
@@ -767,7 +767,7 @@ class Grid {
         return path
     }
 
-    followObs(lastStep, obstacle) {
+    followObs(lastStep, obstacle, sense='anti') {
         console.log("last ")
         console.log(lastStep);
         console.log("obs ")
@@ -784,29 +784,60 @@ class Grid {
 
         var newStep;
         console.log(dir)
-        if (dir == "E" || dir == "SE") {
-            newStep = {
-                x: lastStep.x,
-                y: lastStep.y + 1
-            }
-        }
-        else if (dir == "NE" || dir == "N") {
-            newStep = {
-                x: lastStep.x + 1,
-                y: lastStep.y
-            }
-        }
 
-        else if (dir == "NO" || dir == "O") {
-            newStep = {
-                x: lastStep.x,
-                y: lastStep.y - 1
+        console.log(sense)
+        if (sense == "anti"){
+            if (dir == "E" || dir == "SE") {
+                newStep = {
+                    x: lastStep.x,
+                    y: lastStep.y + 1
+                }
+            }
+            else if (dir == "NE" || dir == "N") {
+                newStep = {
+                    x: lastStep.x + 1,
+                    y: lastStep.y
+                }
+            }
+
+            else if (dir == "NO" || dir == "O") {
+                newStep = {
+                    x: lastStep.x,
+                    y: lastStep.y - 1
+                }
+            }
+            else if (dir == "SO" || dir == "S") {
+                newStep = {
+                    x: lastStep.x - 1,
+                    y: lastStep.y
+                }
             }
         }
-        else if (dir == "SO" || dir == "S") {
-            newStep = {
-                x: lastStep.x - 1,
-                y: lastStep.y
+        else{
+            if (dir == "O" || dir == "SO") {
+                newStep = {
+                    x: lastStep.x,
+                    y: lastStep.y + 1
+                }
+            }
+            else if (dir == "SE" || dir == "S") {
+                newStep = {
+                    x: lastStep.x + 1,
+                    y: lastStep.y
+                }
+            }
+
+            else if (dir == "NE" || dir == "E") {
+                newStep = {
+                    x: lastStep.x,
+                    y: lastStep.y - 1
+                }
+            }
+            else if (dir == "NO" || dir == "N") {
+                newStep = {
+                    x: lastStep.x - 1,
+                    y: lastStep.y
+                }
             }
         }
         return newStep;
@@ -877,6 +908,8 @@ class Grid {
         if (patch.x < 0 || patch.y < 0 || patch.x >= this.size_x || patch.y >= this.size_y)
             return true;
         if (this.wall_map[patch.x][patch.y] == 1)
+            return true;
+        if (this.wall_map[patch.x + 1][patch.y] == 1 && this.wall_map[patch.x][patch.y - 1] == 1 || this.wall_map[patch.x + 1][patch.y] == 1 && this.wall_map[patch.x][patch.y + 1] == 1 || this.wall_map[patch.x - 1][patch.y] == 1 && this.wall_map[patch.x][patch.y - 1] == 1 || this.wall_map[patch.x - 1][patch.y] == 1 && this.wall_map[patch.x][patch.y + 1] == 1)
             return true;
         return false
     }
