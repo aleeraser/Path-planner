@@ -590,7 +590,8 @@ class Grid {
             for (var j = 0; j < range.length; j++) { //check if range area is free
                 if (this.isWall(range[j])) {
                     discontinuities.push(range[j]); //the list of obstacles in range
-                    free = false;
+                    if (this.isInPath(dummyPath, range[j]) != -1) //if there are obstacles in range, but the dummy path is free follow the dummy path
+                        free = false;
                 }
             }
             if (free) { //if free follow the dummy path
@@ -601,10 +602,13 @@ class Grid {
                 var minDist = 100;
                 console.log("-------- ")
                 console.log(discontinuities);
+                discontinuities = this.findDiscontinuities(discontinuities);
+                console.log("-------- ")
+                console.log(discontinuities);
                 for (var j = 0; j < discontinuities.length; j++) { //find the nearest discontinuity
                     var toDisc = this.findDummyPath(dummyPath[i], discontinuities[j]);
                     console.log("ok")
-                    var dist = this.findDummyPath(discontinuities[j], grid.objects['end']).length + toDisc.length //the distance is given by the sum of the distances between you and the discontinuity and between the discontinuity and the end
+                    var dist = this.pathCost(this.findDummyPath(discontinuities[j], grid.objects['end'])) + this.pathCost(toDisc) //the distance is given by the sum of the distances between you and the discontinuity and between the discontinuity and the end
                     if (dist < minDist) {
                         min = discontinuities[j];
                         minDist = dist;
@@ -621,7 +625,7 @@ class Grid {
                     if ((toDisc[0].x < toDisc[1].x && toDisc[0].y > toDisc[1].y) || (toDisc[0].x > toDisc[1].x && toDisc[0].y < toDisc[1].y))
                         dir = "or";
                 }
-                else{ // vertically
+                else { // vertically
                     if ((toDisc[0].x > toDisc[1].x && toDisc[0].y > toDisc[1].y) || (toDisc[0].x < toDisc[1].x && toDisc[0].y < toDisc[1].y))
                         dir = "or";
                 }
@@ -631,6 +635,42 @@ class Grid {
             }
         }
         return dummyPath;
+    }
+
+
+    findDiscontinuities(obs) {
+        var disc = [];
+        for (var i = 0; i < obs.length; i++) {
+            var count = 0;
+            var nears = []
+            nears.push({ x: obs[i].x + 1, y: obs[i].y })
+            nears.push({ x: obs[i].x - 1, y: obs[i].y })
+            nears.push({ x: obs[i].x, y: obs[i].y + 1 })
+            nears.push({ x: obs[i].x, y: obs[i].y - 1 })
+            for (var j=0; j<nears.length; j++){
+                if (this.isInPath(obs, nears[j]) != -1)
+                    count += 1
+                if (count == 2)
+                    break
+            }
+            console.log(count)
+            if (count < 2)
+                disc.push(obs[i])
+        }
+        return disc
+    }
+
+    pathCost(path) {
+        var last = path[0];
+        var cost = 0;
+        for (var i = 1; i < path.length; i++) {
+            if (Math.abs(last.x - path[i].x) == 1)
+                cost += 1
+            if (Math.abs(last.y - path[i].y) == 1)
+                cost += 1
+            last = path[i];
+        }
+        return cost
     }
 
     rangeArea(o, r) { //o is a point object, and r is the radio of the circonference ( in our case it will be a square, according to our distance definition, as the number of steps)
@@ -666,7 +706,7 @@ class Grid {
                 };
 
                 var dummy = this.findDummyPath(lastStep, this.objects['end']);
-                var dist = dummy.length;
+                var dist = this.pathCost(dummy);
                 res.circumnavigation.push(lastStep);
                 res.dists.push(dist)
 
@@ -747,7 +787,7 @@ class Grid {
     circumnavigate1(lastStep, obstacle, end, obj) { //end è la destinazione finale, mi serve per la distanza, dists contiene le distanze lungo la circumnavigazione
         var newStep = this.followObs(lastStep, obstacle);
         var dummy = this.findDummyPath(newStep, end);
-        var dist = dummy.length;
+        var dist = this.pathCost(dummy);
         obj.circumnavigation.push(newStep);
         obj.dists.push(dist)
         console.log("new ");
