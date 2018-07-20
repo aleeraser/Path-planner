@@ -310,7 +310,7 @@ class Grid {
 
     addWall(cell_x, cell_y) {
         if (!this.cellHasWall(cell_x, cell_y)) {
-            var name = 'w' + cell_x + cell_y;
+            var name = 'w' + cell_x + "-" + cell_y;
 
             this.addRect(name, this.MAX, cell_x, cell_y, this.WALL_COLOR);
             this.wall_map[cell_x][cell_y] = 1;
@@ -319,7 +319,7 @@ class Grid {
 
     removeWall(cell_x, cell_y, printDebug = true) {
         if (this.cellHasWall(cell_x, cell_y)) {
-            var name = 'w' + cell_x + cell_y;
+            var name = 'w' + cell_x + "-" + cell_y;
 
             this.wall_map[cell_x][cell_y] = 0;
             this.removeObj(name);
