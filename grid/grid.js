@@ -516,8 +516,6 @@ class Grid {
     }
 
     findDummyPath(start, end) {
-        console.log(start)
-        console.log(end)
         var pointList = [];
         pointList.push({
             x: start.x,
@@ -607,14 +605,19 @@ class Grid {
                 console.log(discontinuities);
                 for (var j = 0; j < discontinuities.length; j++) { //find the nearest discontinuity
                     var toDisc = this.findDummyPath(dummyPath[i], discontinuities[j]);
-                    console.log("ok")
                     var dist = this.pathCost(this.findDummyPath(discontinuities[j], grid.objects['end'])) + this.pathCost(toDisc) //the distance is given by the sum of the distances between you and the discontinuity and between the discontinuity and the end
+                    for (var z = 0 ; z<toDisc.length-1; z++){ // check that the path to the discontinuity is free
+                        if(this.isWall(toDisc[z])) 
+                            dist = 100;
+                    }
                     if (dist < minDist) {
                         min = discontinuities[j];
                         minDist = dist;
                     }
                 }
                 var toDisc = this.findDummyPath(dummyPath[i], min);
+                console.log("toDisc");
+                console.log(toDisc)
                 path = path.concat(toDisc);
                 path.pop();
                 //now boundary following 
@@ -632,17 +635,18 @@ class Grid {
                 console.log(dir)
                 this.boundaryFollow(toDisc[toDisc.length - 2], min, this.objects["end"],dir, path);
                 dummyPath = this.findDummyPath(path[path.length - 1], this.objects["end"]);
+                i=0;
             }
         }
         return path;
     }
-
+    //TODO evitare che find dummy path passi in diagonale tra due ostacoli!!!
     boundaryFollow(last, obstacle, end, dir, path){
         var newStep = this.followObs(last, obstacle);       
         if (!this.isWall(newStep)) {
             path.push(newStep);
             var dummy = this.findDummyPath(newStep, end);
-            var range = this.rangeArea(newStep, 2);
+            var range = this.rangeArea(newStep, 1);
             var free = true;
             for (var j = 0; j < range.length; j++) { //check if range area is free
                 if (this.isWall(range[j])) {
@@ -652,7 +656,7 @@ class Grid {
                     }
                 }
             }
-            if (free){
+            if (free){ //nota se non ho mai il dummy path libero a distanza 2 mi fotto..
                 return path
             }
             return this.boundaryFollow(newStep, obstacle, end, dir, path);
@@ -678,7 +682,6 @@ class Grid {
                 if (count == 2)
                     break
             }
-            console.log(count)
             if (count < 2)
                 disc.push(obs[i])
         }
