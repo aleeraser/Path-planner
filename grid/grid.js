@@ -307,7 +307,7 @@ class Grid {
 
     addWall(cell_x, cell_y) {
         if (!this.cellHasWall(cell_x, cell_y)) {
-            var name = 'w' + cell_x + cell_y;
+            var name = 'w' + cell_x + "-" + cell_y;
 
             this.addRect(name, this.MAX, cell_x, cell_y, this.WALL_COLOR);
             this.wall_map[cell_x][cell_y] = 1;
@@ -316,7 +316,7 @@ class Grid {
 
     removeWall(cell_x, cell_y) {
         if (this.cellHasWall(cell_x, cell_y)) {
-            var name = 'w' + cell_x + cell_y;
+            var name = 'w' + cell_x + "-" + cell_y;
 
             this.wall_map[cell_x][cell_y] = 0;
             this.removeObj(name);
@@ -494,29 +494,37 @@ class Grid {
     }
 
     relocateStartEnd(cell) {
-        if (grid.positionEndPoint) {
-            if (!grid.objects['end'])
-                grid.addCircle('end', grid.MEDIUM_SMALL, cell.x, cell.y, grid.END_COLOR);
-            else
-                grid.setObjectPosition('end', cell.x, cell.y);
-            grid.positionEndPoint = false;
-
-            // var path_x = Math.abs(grid.objects['start'].x - grid.objects['end'].x);
-            // var path_y = Math.abs(grid.objects['start'].y - grid.objects['end'].y);
-
-            //this.evaluatePath();
-            this.visibilityGraph();
-        } else {
-            grid.removePath('test');
-
-            if (!grid.objects['start'])
-                grid.addCircle('start', grid.MEDIUM_SMALL, cell.x, cell.y, grid.START_COLOR);
-            else {
-                grid.setObjectPosition('start', cell.x, cell.y);
-                grid.removeObj('end');
+        if (this.cellHasWall(cell.x, cell.y)) {
+            if (grid.positionEndPoint) {
+                console.error("ERROR: trying to place 'end' point over a wall.")
+            } else {
+                console.error("ERROR: trying to place 'start' point over a wall.")
             }
+        } else {
+            if (grid.positionEndPoint) {
+                if (!grid.objects['end'])
+                    grid.addCircle('end', grid.MEDIUM_SMALL, cell.x, cell.y, grid.END_COLOR);
+                else
+                    grid.setObjectPosition('end', cell.x, cell.y);
+                grid.positionEndPoint = false;
 
-            grid.positionEndPoint = true;
+                // var path_x = Math.abs(grid.objects['start'].x - grid.objects['end'].x);
+                // var path_y = Math.abs(grid.objects['start'].y - grid.objects['end'].y);
+
+                //this.evaluatePath();
+                this.visibilityGraph();
+            } else {
+                grid.removePath('test');
+
+                if (!grid.objects['start'])
+                    grid.addCircle('start', grid.MEDIUM_SMALL, cell.x, cell.y, grid.START_COLOR);
+                else {
+                    grid.setObjectPosition('start', cell.x, cell.y);
+                    grid.removeObj('end');
+                }
+
+                grid.positionEndPoint = true;
+            }
         }
     }
 
