@@ -616,8 +616,8 @@ class Grid {
                 }
                 var toDisc = this.findDummyPath(dummyPath[i], min);
                 path = path.concat(toDisc);
-
-                //now boundary following , quando finisce quella devi modificare il dummy path e l'indice 
+                path.pop();
+                //now boundary following 
                 //heuristic to understand in which direction is better to turn around the obstacle
                 var dir = "anti";
                 if (Math.abs(this.objects["end"].x - this.objects["start"].x) > Math.abs(this.objects["end"].y - this.objects["start"].y)) { // i'm moving horizontally
@@ -630,11 +630,36 @@ class Grid {
                         dir = "or";
                 }
                 console.log(dir)
-                return path.concat(this.findDummyPath(min, grid.objects['end']));
-                //problema tutti i punti di discontinuità hanno la stessa distanza, quindi prende sempre il primo
+                this.boundaryFollow(toDisc[toDisc.length - 2], min, this.objects["end"],dir, path);
+                dummyPath = this.findDummyPath(path[path.length - 1], this.objects["end"]);
             }
         }
-        return dummyPath;
+        return path;
+    }
+
+    boundaryFollow(last, obstacle, end, dir, path){
+        var newStep = this.followObs(last, obstacle);       
+        if (!this.isWall(newStep)) {
+            path.push(newStep);
+            var dummy = this.findDummyPath(newStep, end);
+            var range = this.rangeArea(newStep, 2);
+            var free = true;
+            for (var j = 0; j < range.length; j++) { //check if range area is free
+                if (this.isWall(range[j])) {
+                    if (this.isInPath(dummy, range[j]) != -1){ //if there are obstacles in range, but the dummy path is free follow the dummy path
+                        free = false;
+                        break;
+                    }
+                }
+            }
+            if (free){
+                return path
+            }
+            return this.boundaryFollow(newStep, obstacle, end, dir, path);
+        }
+        else
+            console.log(newStep)
+            return this.boundaryFollow(last, newStep, end, dir, path);
     }
 
 
