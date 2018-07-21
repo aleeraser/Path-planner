@@ -464,7 +464,7 @@ class Grid {
             return true;
         else if (this.wall_map[x][y])
             return true;
-        else if (this.wall_map[x + 1][y] == 1 && this.wall_map[x][y - 1] == 1 || this.wall_map[x + 1][y] == 1 && this.wall_map[x][y + 1] == 1 || this.wall_map[x - 1][y] == 1 && this.wall_map[x][y - 1] == 1 || this.wall_map[x - 1][y] == 1 && this.wall_map[x][y + 1] == 1)
+        else if ((patch.x + 1 < this.size_x && patch.y - 1 >= 0 && this.wall_map[patch.x + 1][patch.y] == 1 && this.wall_map[patch.x][patch.y - 1] == 1) || (patch.x + 1 < this.size_x && patch.y + 1 < this.size_y && this.wall_map[patch.x + 1][patch.y] == 1 && this.wall_map[patch.x][patch.y + 1] == 1) || (patch.x - 1 >= 0 && patch.y - 1 >= 0 && this.wall_map[patch.x - 1][patch.y] == 1 && this.wall_map[patch.x][patch.y - 1] == 1) || (patch.x - 1 >= 0 && patch.y + 1 < this.size_y && this.wall_map[patch.x - 1][patch.y] == 1 && this.wall_map[patch.x][patch.y + 1] == 1))
             return true;
         return false
     }
