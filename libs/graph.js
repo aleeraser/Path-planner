@@ -1,3 +1,7 @@
+// CREDITS:
+// https://github.com/andrewhayward/dijkstra
+
+
 var Graph = (function (undefined) {
 
 	var extractKeys = function (obj) {
