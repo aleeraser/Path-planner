@@ -18,9 +18,12 @@
             <input type="range" min="1" max="60" value="30" class="slider" id="cellNumberSlider"></input>
             <p> Planning method:</p>
             <select class="form-control settingSelect" id="methodSelect">
-                <option>Cellular Decomposition</option>
-                <option>Visibility Graph</option>
-                <option>Probabilistic Roadmap</option>
+                <option value="decomposition">Cellular Decomposition</option>
+                <option value="visibility">Visibility Graph</option>
+                <option value="probabilistic">Probabilistic Roadmap</option>
+                <option value="bug1">Bug1</option>
+                <option value="bug2">Bug2</option>
+                <option value="tangent-bug">Tangent Bug</option>
             </select>
             </br>
             <button type="button" class="btn btn-default" onclick="redrawGrid()">Set and Redraw</button>
@@ -50,23 +53,30 @@
         grid.setBackgroundColor(grid.BG_COLOR);
         grid.setCellsColor(grid.BG_COLOR);
 
+
         // Apply settings and generate grid on canvas
         grid.generate();
 
         // Click listener
         grid.setOnCellClickDrag(function (x, y) {
             grid.toggleWall(x, y);
-        })
+        });
 
         grid.setOnCellRightClick(function (cell) {
             grid.relocateStartEnd(cell);
-        })
+        });
 
         var slider = document.getElementById("cellNumberSlider");
-
         slider.oninput = function () {
             cell_number = this.value;
-        }
+        };
+
+        var select = document.getElementById("methodSelect");
+        grid.setAlgorithm(select.value);
+        select.onchange = function () {
+            grid.setAlgorithm(this.value);
+            grid.evaluatePath();
+        };
     </script>
 </body>
 

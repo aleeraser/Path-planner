@@ -50,8 +50,7 @@ class Grid {
 
         // Objects in the grid
         this.objects = null;
-
-        this.n_path = 0;
+        this.adjacency_graph = null;
 
         // Listeners
         this.canvas_obj.addEventListener('mousemove', this.onMouseMove.bind(null, this));
@@ -72,9 +71,11 @@ class Grid {
             this.relocateStartEnd(cell);
         };
 
+        // Others
+        this.algorithm = null;
 
-        this.adjacency_graph = null;
-
+        // used to enable path drawing only if there is an actual path to redraw
+        this.drawPath = false;
     }
 
 
@@ -259,7 +260,7 @@ class Grid {
         }
 
         if (this.objects[name]) {
-            console.error('ERROR: Name "' + name + '"already used by another object');
+            console.error('ERROR: Name "' + name + '" already used by another object');
             return;
         }
 
@@ -299,7 +300,11 @@ class Grid {
             return;
         }
 
-        delete this.objects[name];
+        if (this.objects[name]) {
+            delete this.objects[name];
+        } else {
+            console.warn("Object '" + name + "' not found while trying to remove it.");
+        }
         this.updateGraphics();
     }
 
@@ -314,6 +319,8 @@ class Grid {
 
             this.addRect(name, this.MAX, cell_x, cell_y, this.WALL_COLOR);
             this.wall_map[cell_x][cell_y] = 1;
+
+            this.evaluatePath();
         }
     }
 
@@ -323,6 +330,8 @@ class Grid {
 
             this.wall_map[cell_x][cell_y] = 0;
             this.removeObj(name);
+
+            this.evaluatePath();
         } else {
             if (printDebug) {
                 console.error("ERROR: trying to remove wall on (" + cell_x + ", " + cell_y + "), but no wall was found");
@@ -346,30 +355,12 @@ class Grid {
         this.addObj(name, size, null, null, color, this.LINE, pointList);
     }
 
-    addPath(pointList, name = null, gridSize = grid.SMALLER, color = this.PATH_COLOR) {
-        var _name = name;
-
-        this.n_path++;
-
-        if (!_name)
-            _name = 'path' + this.n_path;
-
-        this.addLine(_name, gridSize, color, pointList);
+    addPath(pointList, name, gridSize = grid.SMALLER, color = this.PATH_COLOR) {
+        this.addLine(name, gridSize, color, pointList);
     }
 
     removePath(name) {
-        var obj;
-
-        if (obj = this.objects[name]) {
-            if (this.objects[name].type == 'TYPE_LINE') {
-                delete this.objects[name];
-                this.n_path--;
-            } else {
-                console.error("ERROR: trying to remove path '" + name + "', but its type is actually " + this.objects[name].type);
-            }
-        } else {
-            console.log("WARNING: path '" + name + "' not found while trying to remove it");
-        }
+        this.removeObj(name);
     }
 
     moveObject(name, direction) {
@@ -427,6 +418,10 @@ class Grid {
         this.updateGraphics();
     }
 
+    setAlgorithm(algorithm) {
+        this.algorithm = algorithm;
+    }
+
 
     // Generate the grid based on setting specified before
     generate() {
@@ -462,6 +457,7 @@ class Grid {
         }
 
         this.objects = [];
+        this.drawPath = false;
         this.updateGraphics();
     }
 
@@ -506,20 +502,8 @@ class Grid {
                     grid.setObjectPosition('end', cell.x, cell.y);
                 grid.positionEndPoint = false;
 
-                switch (document.getElementById('methodSelect').value) {
-                    case "Visibility Graph":
-                        this.visibilityGraph();
-                        break;
-                    case "Probabilistic Roadmap":
-                        this.visibilityGraph(true);
-                        break;
-                    case "Cellular Decomposition":
-                        this.findPath();
-                        break;
-
-                    default:
-                        break;
-                }
+                grid.drawPath = true;
+                this.evaluatePath();
             } else {
                 grid.removePath('decomposition');
 
@@ -606,6 +590,51 @@ class Grid {
 
     setOnCellClickDrag(evHandler) {
         this.onCellClickDrag = evHandler;
+    }
+
+    evaluatePath() {
+        if (this.drawPath) {
+
+            // Remove all previous paths and points, except for 'start' and 'end' points
+            for (var key in this.objects) {
+                var obj = this.objects[key];
+                if (obj.type == this.LINE || (obj.type == this.CIRCLE && obj.name != 'start' && obj.name != 'end')) {
+                    delete this.objects[obj.name];
+                }
+            }
+
+            var pointList;
+
+            switch (this.algorithm) {
+                case "visibility":
+                    this.visibilityGraph();
+                    break;
+                case "probabilistic":
+                    this.visibilityGraph(true);
+                    break;
+                case "decomposition":
+                    pointList = this.findPath();
+                    break;
+                case "bug1":
+                    pointList = this.bug1(this.findDummyPath(this.objects['start'], this.objects['end']));
+                    break;
+                case "bug2":
+                    pointList = this.bug2(this.findDummyPath(this.objects['start'], this.objects['end']));
+                    break;
+                case "tangent-bug":
+                    pointList = this.tangentBug(this.findDummyPath(this.objects['start'], this.objects['end']));
+                    break;
+                default:
+                    console.error("No algorithm found with name '" + this.algorithm + "'.");
+                    this.algorithm = null;
+                    break;
+            }
+
+            if (pointList) {
+                this.addPath(pointList, 'path');
+                this.setObjectPosition('start', pointList[0].x, pointList[0].y);
+            }
+        }
     }
 
 
@@ -701,7 +730,7 @@ class Grid {
             });
         })
 
-        this.addPath(pointList, "decomposition");
+        return pointList;
     }
 
 
@@ -723,7 +752,6 @@ class Grid {
             }
             this.obstacle_vertex_map.push(l);
         }
-
 
         if (probabilistic) {
             // Random fills obstacle_vertex_map -- Probabilsitic Roadmap
@@ -835,7 +863,7 @@ class Grid {
         }
 
         console.log(shortest_path_point_list);
-        this.addBestPath('best', shortest_path_point_list);
+        this.addPath(shortest_path_point_list, "best", grid.SMALL, this.BEST_PATH_COLOR);
     }
 
     addAllObstaclesVertex() {
@@ -900,9 +928,17 @@ class Grid {
         }
     }
 
+    logObjectNames() {
+        for (var key in this.objects) {
+            console.log(key);
+        }
+    }
+
+
+
+
+    // Bug methods
     findDummyPath(start, end) {
-        console.log(start)
-        console.log(end)
         var pointList = [];
         pointList.push({
             x: start.x,
@@ -912,7 +948,6 @@ class Grid {
             x: start.x,
             y: start.y
         };
-
         var x, y;
         while (last.x != end.x || last.y != end.y) {
             if (last.x < end.x)
@@ -937,6 +972,137 @@ class Grid {
         return pointList
     }
 
+    isInPath(path, step) { //index of 
+        var r = -1;
+        for (var i = 0; i < path.length; i++) {
+            var el = path[i];
+            if (el.x == step.x && el.y == step.y) {
+                r = i;
+                break;
+            }
+        }
+        return r;
+    }
+
+    tangentBug(dummyPath) {
+        console.log("tangent bug");
+
+        var path = [];
+        for (var i = 0; i < dummyPath.length; i++) { //try to follow the dummy path
+            var range = this.rangeArea(dummyPath[i], 2);
+            var free = true;
+            var discontinuities = [];
+            for (var j = 0; j < range.length; j++) { //check if range area is free
+                if (this.isWall(range[j])) {
+                    discontinuities.push(range[j]); //the list of obstacles in range
+                    if (this.isInPath(dummyPath, range[j]) != -1) //if there are obstacles in range, but the dummy path is free follow the dummy path
+                        free = false;
+                }
+            }
+            if (free) { //if free follow the dummy path
+                path.push(dummyPath[i])
+            } else {
+                var min;
+                var minDist = 100;
+                console.log("-------- ")
+                console.log(discontinuities);
+                discontinuities = this.findDiscontinuities(discontinuities);
+                console.log("-------- ")
+                console.log(discontinuities);
+                for (var j = 0; j < discontinuities.length; j++) { //find the nearest discontinuity
+                    var toDisc = this.findDummyPath(dummyPath[i], discontinuities[j]);
+                    var dist = this.pathCost(this.findDummyPath(discontinuities[j], grid.objects['end'])) + this.pathCost(toDisc) //the distance is given by the sum of the distances between you and the discontinuity and between the discontinuity and the end
+                    for (var z = 0; z < toDisc.length - 1; z++) { // check that the path to the discontinuity is free
+                        if (this.isWall(toDisc[z]))
+                            dist = 100;
+                    }
+                    if (dist < minDist) {
+                        min = discontinuities[j];
+                        minDist = dist;
+                    }
+                }
+                var toDisc = this.findDummyPath(dummyPath[i], min);
+                console.log("toDisc");
+                console.log(toDisc)
+                path = path.concat(toDisc);
+                path.pop();
+                //now boundary following 
+                //heuristic to understand in which direction is better to turn around the obstacle
+                var dir = "anti";
+                if (Math.abs(this.objects["end"].x - this.objects["start"].x) > Math.abs(this.objects["end"].y - this.objects["start"].y)) { // i'm moving horizontally
+                    console.log('orizzontale')
+                    if ((toDisc[0].x < toDisc[1].x && toDisc[0].y > toDisc[1].y) || (toDisc[0].x > toDisc[1].x && toDisc[0].y < toDisc[1].y))
+                        dir = "or";
+                } else { // vertically
+                    if ((toDisc[0].x > toDisc[1].x && toDisc[0].y > toDisc[1].y) || (toDisc[0].x < toDisc[1].x && toDisc[0].y < toDisc[1].y))
+                        dir = "or";
+                }
+                console.log(dir)
+                this.boundaryFollow(toDisc[toDisc.length - 2], min, this.objects["end"], dir, path);
+                dummyPath = this.findDummyPath(path[path.length - 1], this.objects["end"]);
+                i = 0;
+            }
+        }
+        return path;
+    }
+    //TODO evitare che find dummy path passi in diagonale tra due ostacoli!!!
+    boundaryFollow(last, obstacle, end, dir, path) {
+        var newStep = this.followObs(last, obstacle, dir);
+        if (!this.isWall(newStep)) {
+            path.push(newStep);
+            var dummy = this.findDummyPath(newStep, end);
+            var range = this.rangeArea(newStep, 1);
+            var free = true;
+            for (var j = 0; j < range.length; j++) { //check if range area is free
+                if (this.isWall(range[j])) {
+                    if (this.isInPath(dummy, range[j]) != -1) { //if there are obstacles in range, but the dummy path is free follow the dummy path
+                        free = false;
+                        break;
+                    }
+                }
+            }
+            if (free) { //nota se non ho mai il dummy path libero a distanza 2 mi fotto..
+                return path
+            }
+            return this.boundaryFollow(newStep, obstacle, end, dir, path);
+        } else
+            console.log(newStep)
+        return this.boundaryFollow(last, newStep, end, dir, path);
+    }
+
+    findDiscontinuities(obs) {
+        var disc = [];
+        for (var i = 0; i < obs.length; i++) {
+            var count = 0;
+            var nears = []
+            nears.push({
+                x: obs[i].x + 1,
+                y: obs[i].y
+            })
+            nears.push({
+                x: obs[i].x - 1,
+                y: obs[i].y
+            })
+            nears.push({
+                x: obs[i].x,
+                y: obs[i].y + 1
+            })
+            nears.push({
+                x: obs[i].x,
+                y: obs[i].y - 1
+            })
+            for (var j = 0; j < nears.length; j++) {
+                if (this.isInPath(obs, nears[j]) != -1)
+                    count += 1
+                if (count == 2)
+                    break
+            }
+            if (count < 2)
+                disc.push(obs[i])
+        }
+        return disc
+    }
+
     pathCost(path) {
         var last = path[0];
         var cost = 0;
@@ -945,15 +1111,206 @@ class Grid {
                 cost += 1
             if (Math.abs(last.y - path[i].y) == 1)
                 cost += 1
-
             last = path[i];
         }
         return cost
     }
 
-    logObjectNames() {
-        for (var key in this.objects) {
-            console.log(key);
+    rangeArea(o, r) { //o is a point object, and r is the radio of the circonference ( in our case it will be a square, according to our distance definition, as the number of steps)
+        var range = [];
+        for (var i = 0; i < this.size_y; i++) {
+            for (var j = 0; j < this.size_x; j++) {
+                if (o.x - r <= i && i <= o.x + r && o.y - r <= j && j <= o.y + r) {
+                    range.push({
+                        x: i,
+                        y: j
+                    })
+                }
+            }
         }
+        return range
+    }
+
+    bug1(dummyPath) {
+        var path = [];
+        for (var i = 0; i < dummyPath.length; i++) {
+            var step = dummyPath[i];
+            if (!this.isWall(step)) {
+                console.log(step)
+                path.push(step);
+            } else {
+                console.log("wall")
+                path.push(step);
+                var lastStep = dummyPath[this.isInPath(dummyPath, step) - 1];
+                var res = {
+                    circumnavigation: [],
+                    dists: []
+                };
+
+                var dummy = this.findDummyPath(lastStep, this.objects['end']);
+                var dist = this.pathCost(dummy);
+                res.circumnavigation.push(lastStep);
+                res.dists.push(dist)
+
+                res = this.circumnavigate1(lastStep, step, this.objects['end'], res)
+                //usa res per capire il minimo e percorrere il percorso all'indietro
+                console.log(path.length);
+                path.pop();
+                path.pop();
+                console.log(path.length);
+
+                var minDist = Math.min(...res.dists);
+                console.log("min dist: " + minDist)
+                var nearest = res.circumnavigation[res.dists.lastIndexOf(minDist)];
+                console.log(nearest);
+                var backToNearest = res.circumnavigation.slice(res.dists.lastIndexOf(minDist), res.dists.length)
+
+                backToNearest.reverse();
+                console.log(backToNearest);
+                path = path.concat(res.circumnavigation);
+                path = path.concat(backToNearest.slice(1, backToNearest.length));
+
+
+                dummyPath = this.findDummyPath(nearest, this.objects['end']);
+                console.log("raggirato");
+                i = 0;
+                console.log("--- " + i);
+            }
+        }
+        console.log(path);
+        return path
+    }
+
+    followObs(lastStep, obstacle, sense = 'anti') {
+        console.log("last ")
+        console.log(lastStep);
+        console.log("obs ")
+        console.log(obstacle);
+        var dir = "";
+        if (lastStep.y > obstacle.y)
+            dir += "N";
+        else if (lastStep.y < obstacle.y)
+            dir += "S";
+        if (lastStep.x > obstacle.x)
+            dir += "O";
+        else if (lastStep.x < obstacle.x)
+            dir += "E";
+
+        var newStep;
+        console.log(dir)
+
+        console.log(sense)
+        if (sense == "anti") {
+            if (dir == "E" || dir == "SE") {
+                newStep = {
+                    x: lastStep.x,
+                    y: lastStep.y + 1
+                }
+            } else if (dir == "NE" || dir == "N") {
+                newStep = {
+                    x: lastStep.x + 1,
+                    y: lastStep.y
+                }
+            } else if (dir == "NO" || dir == "O") {
+                newStep = {
+                    x: lastStep.x,
+                    y: lastStep.y - 1
+                }
+            } else if (dir == "SO" || dir == "S") {
+                newStep = {
+                    x: lastStep.x - 1,
+                    y: lastStep.y
+                }
+            }
+        } else {
+            if (dir == "O" || dir == "SO") {
+                newStep = {
+                    x: lastStep.x,
+                    y: lastStep.y + 1
+                }
+            } else if (dir == "SE" || dir == "S") {
+                newStep = {
+                    x: lastStep.x + 1,
+                    y: lastStep.y
+                }
+            } else if (dir == "NE" || dir == "E") {
+                newStep = {
+                    x: lastStep.x,
+                    y: lastStep.y - 1
+                }
+            } else if (dir == "NO" || dir == "N") {
+                newStep = {
+                    x: lastStep.x - 1,
+                    y: lastStep.y
+                }
+            }
+        }
+        return newStep;
+    }
+
+    circumnavigate1(lastStep, obstacle, end, obj) { //end è la destinazione finale, mi serve per la distanza, dists contiene le distanze lungo la circumnavigazione
+        var newStep = this.followObs(lastStep, obstacle);
+        var dummy = this.findDummyPath(newStep, end);
+        var dist = this.pathCost(dummy);
+        obj.circumnavigation.push(newStep);
+        obj.dists.push(dist)
+        console.log("new ");
+        console.log(newStep);
+        if (!this.isWall(newStep)) {
+            if (newStep.x == obj.circumnavigation[0].x && newStep.y == obj.circumnavigation[0].y) {
+                //non sto mettendo l'ultimo step, controllare se è giusto
+                console.log(obj.dists)
+                return obj
+            }
+            return this.circumnavigate1(newStep, obstacle, end, obj);
+        } else
+            obj.circumnavigation.pop();
+        obj.dists.pop();
+        console.log(newStep)
+        return this.circumnavigate1(lastStep, newStep, end, obj)
+    }
+
+    bug2(dummyPath) {
+        var path = [];
+        for (var i = 0; i < dummyPath.length; i++) {
+            var step = dummyPath[i];
+            if (!this.isWall(step)) {
+                console.log(step)
+                path.push(step);
+            } else {
+                console.log("wall")
+                path.push(step);
+                var lastStep = dummyPath[this.isInPath(dummyPath, step) - 1];
+                path = this.circumnavigate2(lastStep, step, path, dummyPath)
+                console.log("raggirato")
+                var last = path[path.length - 1]
+                i = this.isInPath(dummyPath, last) - 1;
+                console.log("--- " + i);
+            }
+        }
+        return path
+    }
+
+    circumnavigate2(lastStep, obstacle, newPath, oldPath) {
+        var newStep = this.followObs(lastStep, obstacle);
+        var newPath = newPath.slice(0, this.isInPath(newPath, lastStep) + 1)
+        newPath.push(newStep)
+        console.log(newStep)
+        if (!this.isWall(newStep)) {
+            if (this.isInPath(oldPath, newStep) != -1 && this.isInPath(newPath, newStep) == newPath.length - 1)
+                return newPath
+            return this.circumnavigate2(newStep, obstacle, newPath, oldPath);
+        } else
+            return this.circumnavigate2(lastStep, newStep, newPath, oldPath)
+    }
+
+    isWall(patch) {
+        if (patch.x < 0 || patch.y < 0 || patch.x >= this.size_x || patch.y >= this.size_y)
+            return true;
+        if (this.wall_map[patch.x][patch.y] == 1)
+            return true;
+        if (this.wall_map[patch.x + 1][patch.y] == 1 && this.wall_map[patch.x][patch.y - 1] == 1 || this.wall_map[patch.x + 1][patch.y] == 1 && this.wall_map[patch.x][patch.y + 1] == 1 || this.wall_map[patch.x - 1][patch.y] == 1 && this.wall_map[patch.x][patch.y - 1] == 1 || this.wall_map[patch.x - 1][patch.y] == 1 && this.wall_map[patch.x][patch.y + 1] == 1)
+            return true;
+        return false
     }
 }
