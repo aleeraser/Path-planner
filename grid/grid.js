@@ -771,7 +771,7 @@ class Grid {
             // If path is ok adds it to free_single_path
             if (ok) {
                 free_single_paths.push(sp);
-                this.addPath(sp.name, sp.path);
+                this.addPath(sp.path, sp.name);
                 fsp_dict[sp.name] = sp;
             }
         })
