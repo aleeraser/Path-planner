@@ -15,11 +15,12 @@
         </canvas>
         <div id="settings">
             <p>Cell number:</p>
-            <input type="range" min="1" max="60" value="30" class="slider" id="cellNumber"></input>
+            <input type="range" min="1" max="60" value="30" class="slider" id="cellNumberSlider"></input>
             <p> Planning method:</p>
             <select class="form-control settingSelect" id="methodSelect">
                 <option>Cellular Decomposition</option>
-
+                <option>Visibility Graph</option>
+                <option>Probabilistic Roadmap</option>
             </select>
             </br>
             <button type="button" class="btn btn-default" onclick="redrawGrid()">Set and Redraw</button>
@@ -29,46 +30,39 @@
     <script src="grid.js"></script>
     <script src="../libs/graph.js"></script>
     <script>
-        var grid
-
-        function redrawGrid() {
-            grid.setSize(cell_number, cell_number);
-            grid.generate();
-            // initGrid();
-        }
-
-        function initGrid() {
-            grid = new Grid('canvas', side_length, cell_number);
-
-            // Pixels between cells
-            grid.setSpacing(cell_spacing, cell_spacing);
-
-            // Colors
-            grid.setBackgroundColor(grid.BG_COLOR);
-            grid.setCellsColor(grid.BG_COLOR);
-
-            // Apply settings and generate grid on canvas
-            grid.generate();
-
-            // Click listener
-            grid.setOnCellClickDrag(function (x, y) {
-                grid.toggleWall(x, y);
-            })
-
-            grid.setOnCellRightClick(function (cell) {
-                grid.relocateStartEnd(cell);
-            })
-
-        }
-
+        var grid;
         var side_length = 500,
             cell_number = 30,
             cell_spacing = 0;
 
-        // Create class passing canvas object id
-        initGrid();
+        function redrawGrid() {
+            grid.setSize(cell_number, cell_number);
+            grid.generate();
+        }
 
-        var slider = document.getElementById("cellNumber");
+        // Create class passing canvas object id
+        grid = new Grid('canvas', side_length, cell_number);
+
+        // Pixels between cells
+        grid.setSpacing(cell_spacing, cell_spacing);
+
+        // Colors
+        grid.setBackgroundColor(grid.BG_COLOR);
+        grid.setCellsColor(grid.BG_COLOR);
+
+        // Apply settings and generate grid on canvas
+        grid.generate();
+
+        // Click listener
+        grid.setOnCellClickDrag(function (x, y) {
+            grid.toggleWall(x, y);
+        })
+
+        grid.setOnCellRightClick(function (cell) {
+            grid.relocateStartEnd(cell);
+        })
+
+        var slider = document.getElementById("cellNumberSlider");
 
         slider.oninput = function () {
             cell_number = this.value;

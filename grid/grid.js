@@ -506,12 +506,20 @@ class Grid {
                     grid.setObjectPosition('end', cell.x, cell.y);
                 grid.positionEndPoint = false;
 
-                // var path_x = Math.abs(grid.objects['start'].x - grid.objects['end'].x);
-                // var path_y = Math.abs(grid.objects['start'].y - grid.objects['end'].y);
+                switch (document.getElementById('methodSelect').value) {
+                    case "Visibility Graph":
+                        this.visibilityGraph();
+                        break;
+                    case "Probabilistic Roadmap":
+                        this.visibilityGraph(true);
+                        break;
+                    case "Cellular Decomposition":
+                        this.findPath();
+                        break;
 
-                //this.evaluatePath();
-                // this.visibilityGraph();
-                this.findPath();
+                    default:
+                        break;
+                }
             } else {
                 grid.removePath('decomposition');
 
@@ -603,8 +611,7 @@ class Grid {
 
 
 
-
-
+    // Grid/cellular decomposition methods
     gridDecomposition() {
         var adjacency_matrix = {};
 
@@ -670,8 +677,6 @@ class Grid {
         this.adjacency_graph = new Graph(adjacency_matrix);
     }
 
-
-
     findPath() {
         this.gridDecomposition();
 
@@ -700,4 +705,255 @@ class Grid {
     }
 
 
+
+
+    // Visibility Graph Methods
+    visibilityGraph(probabilistic = false) {
+        console.log("Visibility Graph Method");
+
+        // Variables setup
+        this.obstacle_vertex_names = [];
+
+        // Obstacle map, initialized to 0 in every cell
+        this.obstacle_vertex_map = [];
+        for (var i = 0; i < this.size_x; i++) {
+            var l = []
+            for (var j = 0; j < this.size_y; j++) {
+                l.push(0);
+            }
+            this.obstacle_vertex_map.push(l);
+        }
+
+
+        if (probabilistic) {
+            // Random fills obstacle_vertex_map -- Probabilsitic Roadmap
+            this.randomObstacleVertex();
+        } else {
+            // Fills the obstacle_vertex_map -- Visibility Graph
+            this.addAllObstaclesVertex();
+        }
+
+        // All obstacle vertex plus the start and end position
+        var point_names = this.obstacle_vertex_names.concat('start').concat('end');
+
+        var i, j;
+        var single_paths = [];
+
+        // For each pair of points calculate the shortest path
+        for (i = 0; i < point_names.length; i++) {
+            for (j = i + 1; j < point_names.length; j++) {
+
+                var p = this.findDummyPath(grid.objects[point_names[i]], grid.objects[point_names[j]]);
+
+                // Start & End are the names of the vertices but the path can actually be used in both directions
+                single_paths.push({
+                    name: 'singlepath-' + point_names[i] + '-' + point_names[j],
+                    path: p,
+                    start: point_names[i],
+                    end: point_names[j]
+                });
+            }
+        }
+
+        var free_single_paths = [];
+        // Also create a dictionary using its name
+        var fsp_dict = {};
+
+        // For each single_path check if it goes through obstacles
+        single_paths.forEach(sp => {
+            var ok = true;
+            sp.path.forEach(step => {
+                if (this.wall_map[step.x][step.y] == 1) {
+                    ok = false;
+                    return;
+                }
+            })
+            // If path is ok adds it to free_single_path
+            if (ok) {
+                free_single_paths.push(sp);
+                this.addPath(sp.name, sp.path);
+                fsp_dict[sp.name] = sp;
+            }
+        })
+
+        // Now translate single paths to a graph form
+        // Each single path is an edge
+        var map = {}
+
+        free_single_paths.forEach(fsp => {
+
+            // First time, initialize node in graph
+            if (map[fsp.start] == null) {
+                map[fsp.start] = {}
+            }
+            if (map[fsp.end] == null) {
+                map[fsp.end] = {}
+            }
+
+            // Add bidirectional edge, weighted by the lenght of the path
+            map[fsp.start][fsp.end] = this.pathCost(fsp.path); //fsp.path.length;
+            map[fsp.end][fsp.start] = this.pathCost(fsp.path); //fsp.path.length;
+        })
+
+        // Shortest is a list of obstacle_vertex names
+        var graph = new Graph(map);
+        var shortest = graph.findShortestPath('start', 'end');
+        console.log(shortest);
+
+        // Null means no path available
+        if (shortest == null) {
+            alert('No path found');
+            return;
+        }
+
+        // In fsp_dict the singlepath name is used as key
+        var i;
+        var shortest_path_point_list = []
+
+        // Insert start
+        shortest_path_point_list.push({
+            x: grid.objects['start'].x,
+            y: grid.objects['start'].y
+        });
+
+        for (i = 1; i < shortest.length; i++) {
+            // TODO: Serve modo un po piu elegante magari
+            // Nella creazione del nome non so quale punto è stato messo prima... Li provo entrambi.
+            // Se lo uso al contrario i punti del path vanno usati in ordine contrario (reverse)
+            var sp_name_v1 = 'singlepath-' + shortest[i - 1] + '-' + shortest[i];
+            var sp_name_v2 = 'singlepath-' + shortest[i] + '-' + shortest[i - 1];
+            var point_list;
+            if (fsp_dict[sp_name_v1])
+                point_list = fsp_dict[sp_name_v1].path;
+            else
+                point_list = fsp_dict[sp_name_v2].path.reverse();
+
+            point_list.slice(1).forEach(point => {
+                shortest_path_point_list.push(point);
+            })
+            console.log(point_list);
+        }
+
+        console.log(shortest_path_point_list);
+        this.addBestPath('best', shortest_path_point_list);
+    }
+
+    addAllObstaclesVertex() {
+        // Add obstacles edges
+        var i = 0,
+            j = 0;
+        for (i = 0; i < this.wall_map.length; i++) {
+            var row = this.wall_map[i];
+            for (j = 0; j < row.length; j++) {
+                if (row[j] == 1) {
+                    this.addObstacleVertex(i, j);
+                }
+            }
+        }
+    }
+
+    // Check the four diagonal point of the specified cell, and adds edges if not occupied
+    addObstacleVertex(x, y) {
+        var diagonalPositions = [
+            [1, 1],
+            [1, -1],
+            [-1, 1],
+            [-1, -1]
+        ];
+
+        diagonalPositions.forEach(element => {
+
+            if (x + element[0] >= this.size_x || x + element[0] < 0 || y + element[1] >= this.size_y || y + element[1] < 0) {
+                // Outside the map
+                return;
+            } else if (this.wall_map[x + element[0]][y] == 0 && this.wall_map[x][y + element[1]] == 0 && this.wall_map[x + element[0]][y + element[1]] == 0) {
+                if (this.obstacle_vertex_map[x + element[0]][y + element[1]] == 0) {
+                    var obstacle_vertex_name = 'ov' + '_' + (x + element[0]) + '_' + (y + element[1]);
+                    this.addCircle(obstacle_vertex_name, grid.MEDIUM, x + element[0], y + element[1], grid.OBSTACLE_EDGE_COLOR);
+                    this.obstacle_vertex_names.push(obstacle_vertex_name);
+                    this.obstacle_vertex_map[x + element[0]][y + element[1]] = 1;
+                }
+            }
+        });
+    }
+
+    randomObstacleVertex() {
+        var SAMPLE_NUM = this.size_x;
+        var MAX_TRIES = this.size_x * 3;
+        var i = 0;
+        var n = 0;
+        var x, y;
+
+        while (i < SAMPLE_NUM && n < MAX_TRIES) {
+            x = Math.floor(Math.random() * this.size_x);
+            y = Math.floor(Math.random() * this.size_y);
+
+            if (this.wall_map[x][y] == 0 && this.obstacle_vertex_map[x][y] == 0) {
+                this.obstacle_vertex_map[x][y] = 1;
+                var obstacle_vertex_name = "random_" + x + "_" + y;
+                this.addCircle(obstacle_vertex_name, grid.MEDIUM, x, y, grid.OBSTACLE_EDGE_COLOR);
+                this.obstacle_vertex_names.push(obstacle_vertex_name);
+                i++;
+            }
+
+            n++;
+        }
+    }
+
+    findDummyPath(start, end) {
+        console.log(start)
+        console.log(end)
+        var pointList = [];
+        pointList.push({
+            x: start.x,
+            y: start.y
+        })
+        var last = {
+            x: start.x,
+            y: start.y
+        };
+
+        var x, y;
+        while (last.x != end.x || last.y != end.y) {
+            if (last.x < end.x)
+                x = last.x + 1
+            else if (last.x == end.x)
+                x = last.x
+            else x = last.x - 1
+
+            if (last.y < end.y)
+                y = last.y + 1
+            else if (last.y == end.y)
+                y = last.y
+            else y = last.y - 1
+
+            pointList.push({
+                x: x,
+                y: y
+            })
+            last.x = x;
+            last.y = y;
+        }
+        return pointList
+    }
+
+    pathCost(path) {
+        var last = path[0];
+        var cost = 0;
+        for (var i = 1; i < path.length; i++) {
+            if (Math.abs(last.x - path[i].x) == 1)
+                cost += 1
+            if (Math.abs(last.y - path[i].y) == 1)
+                cost += 1
+
+            last = path[i];
+        }
+        return cost
+    }
+
+    logObjectNames() {
+        for (var key in this.objects) {
+            console.log(key);
+        }
+    }
 }
