@@ -314,7 +314,7 @@ class Grid {
     }
 
     addWall(cell_x, cell_y) {
-        if (!this.cellHasWall(cell_x, cell_y)) {
+        if (!this.cellIsWall(cell_x, cell_y)) {
             var name = 'w' + cell_x + "-" + cell_y;
 
             this.addRect(name, this.MAX, cell_x, cell_y, this.WALL_COLOR);
@@ -325,7 +325,7 @@ class Grid {
     }
 
     removeWall(cell_x, cell_y, printDebug = true) {
-        if (this.cellHasWall(cell_x, cell_y)) {
+        if (this.cellIsWall(cell_x, cell_y)) {
             var name = 'w' + cell_x + "-" + cell_y;
 
             this.wall_map[cell_x][cell_y] = 0;
@@ -340,7 +340,7 @@ class Grid {
     }
 
     toggleWall(cell_x, cell_y) {
-        if (!this.cellHasWall(cell_x, cell_y))
+        if (!this.cellIsWall(cell_x, cell_y))
             this.addWall(cell_x, cell_y);
         else
             this.removeWall(cell_x, cell_y);
@@ -463,8 +463,14 @@ class Grid {
 
 
     // UTILS
-    cellHasWall(x, y) {
-        return this.wall_map[x][y];
+    cellIsWall(x, y) {
+        if (x < 0 || y < 0 || x >= this.size_x || y >= this.size_y)
+            return true;
+        else if (this.wall_map[x][y])
+            return true;
+        else if (this.wall_map[x + 1][y] == 1 && this.wall_map[x][y - 1] == 1 || this.wall_map[x + 1][y] == 1 && this.wall_map[x][y + 1] == 1 || this.wall_map[x - 1][y] == 1 && this.wall_map[x][y - 1] == 1 || this.wall_map[x - 1][y] == 1 && this.wall_map[x][y + 1] == 1)
+            return true;
+        return false
     }
 
     getCorrespondingCell(grid, event) {
@@ -488,7 +494,7 @@ class Grid {
     }
 
     relocateStartEnd(cell) {
-        if (this.cellHasWall(cell.x, cell.y)) {
+        if (this.cellIsWall(cell.x, cell.y)) {
             if (grid.positionEndPoint) {
                 console.error("ERROR: trying to place 'end' point over a wall.")
             } else {
@@ -532,7 +538,7 @@ class Grid {
                         if (!grid.mouseWasDragged) {
                             grid.mouseWasDragged = true;
 
-                            if (grid.cellHasWall(cell.x, cell.y))
+                            if (grid.cellIsWall(cell.x, cell.y))
                                 grid.mouseDragAction = function (x, y) {
                                     grid.removeWall(x, y, false);
                                 };
@@ -651,7 +657,7 @@ class Grid {
                 // console.log("Computing for cell (" + i + ", " + j + ").");
 
                 // skip wall cells
-                if (!this.cellHasWall(i, j)) {
+                if (!this.cellIsWall(i, j)) {
 
                     var source = i + "_" + j;
 
@@ -670,7 +676,7 @@ class Grid {
                                 if (!(k == i && l == j)) {
 
                                     // check that target has not a wall over it
-                                    if (!this.cellHasWall(k, l)) {
+                                    if (!this.cellIsWall(k, l)) {
                                         // var target = "c_" + k + "_" + l;
                                         var target = k + "_" + l;
 
@@ -993,7 +999,7 @@ class Grid {
             var free = true;
             var discontinuities = [];
             for (var j = 0; j < range.length; j++) { //check if range area is free
-                if (this.isWall(range[j])) {
+                if (this.cellIsWall(range[j].x, range[j].y)) {
                     discontinuities.push(range[j]); //the list of obstacles in range
                     if (this.isInPath(dummyPath, range[j]) != -1) //if there are obstacles in range, but the dummy path is free follow the dummy path
                         free = false;
@@ -1013,7 +1019,7 @@ class Grid {
                     var toDisc = this.findDummyPath(dummyPath[i], discontinuities[j]);
                     var dist = this.pathCost(this.findDummyPath(discontinuities[j], grid.objects['end'])) + this.pathCost(toDisc) //the distance is given by the sum of the distances between you and the discontinuity and between the discontinuity and the end
                     for (var z = 0; z < toDisc.length - 1; z++) { // check that the path to the discontinuity is free
-                        if (this.isWall(toDisc[z]))
+                        if (this.cellIsWall(toDisc[z].x, toDisc[z].y))
                             dist = 100;
                     }
                     if (dist < minDist) {
@@ -1048,13 +1054,13 @@ class Grid {
     //TODO evitare che find dummy path passi in diagonale tra due ostacoli!!!
     boundaryFollow(last, obstacle, end, dir, path) {
         var newStep = this.followObs(last, obstacle, dir);
-        if (!this.isWall(newStep)) {
+        if (!this.cellIsWall(newStep.x, newStep.y)) {
             path.push(newStep);
             var dummy = this.findDummyPath(newStep, end);
             var range = this.rangeArea(newStep, 1);
             var free = true;
             for (var j = 0; j < range.length; j++) { //check if range area is free
-                if (this.isWall(range[j])) {
+                if (this.cellIsWall(range[j].x, range[j].y)) {
                     if (this.isInPath(dummy, range[j]) != -1) { //if there are obstacles in range, but the dummy path is free follow the dummy path
                         free = false;
                         break;
@@ -1135,7 +1141,7 @@ class Grid {
         var path = [];
         for (var i = 0; i < dummyPath.length; i++) {
             var step = dummyPath[i];
-            if (!this.isWall(step)) {
+            if (!this.cellIsWall(step.x, step.y)) {
                 console.log(step)
                 path.push(step);
             } else {
@@ -1256,7 +1262,7 @@ class Grid {
         obj.dists.push(dist)
         console.log("new ");
         console.log(newStep);
-        if (!this.isWall(newStep)) {
+        if (!this.cellIsWall(newStep.x, newStep.y)) {
             if (newStep.x == obj.circumnavigation[0].x && newStep.y == obj.circumnavigation[0].y) {
                 //non sto mettendo l'ultimo step, controllare se è giusto
                 console.log(obj.dists)
@@ -1274,7 +1280,7 @@ class Grid {
         var path = [];
         for (var i = 0; i < dummyPath.length; i++) {
             var step = dummyPath[i];
-            if (!this.isWall(step)) {
+            if (!this.cellIsWall(step.x, step.y)) {
                 console.log(step)
                 path.push(step);
             } else {
@@ -1296,21 +1302,11 @@ class Grid {
         var newPath = newPath.slice(0, this.isInPath(newPath, lastStep) + 1)
         newPath.push(newStep)
         console.log(newStep)
-        if (!this.isWall(newStep)) {
+        if (!this.cellIsWall(newStep.x, newStep.y)) {
             if (this.isInPath(oldPath, newStep) != -1 && this.isInPath(newPath, newStep) == newPath.length - 1)
                 return newPath
             return this.circumnavigate2(newStep, obstacle, newPath, oldPath);
         } else
             return this.circumnavigate2(lastStep, newStep, newPath, oldPath)
-    }
-
-    isWall(patch) {
-        if (patch.x < 0 || patch.y < 0 || patch.x >= this.size_x || patch.y >= this.size_y)
-            return true;
-        if (this.wall_map[patch.x][patch.y] == 1)
-            return true;
-        if (this.wall_map[patch.x + 1][patch.y] == 1 && this.wall_map[patch.x][patch.y - 1] == 1 || this.wall_map[patch.x + 1][patch.y] == 1 && this.wall_map[patch.x][patch.y + 1] == 1 || this.wall_map[patch.x - 1][patch.y] == 1 && this.wall_map[patch.x][patch.y - 1] == 1 || this.wall_map[patch.x - 1][patch.y] == 1 && this.wall_map[patch.x][patch.y + 1] == 1)
-            return true;
-        return false
     }
 }
