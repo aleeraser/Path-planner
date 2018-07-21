@@ -20,7 +20,7 @@ class Grid {
 
         this.canvas_id = canvas_id;
         this.canvas_obj = document.getElementById(this.canvas_id);
-        this.context = this.canvas_obj.getContext('2d');
+        this.context = this.canvas_obj.getContext("2d");
 
         // Canvas size and cell number
         this.canvas_obj.width = this.canvas_obj.height = side_length;
@@ -31,16 +31,16 @@ class Grid {
         this.spacing_y = 5;
 
         // Color configurations
-        this.WALL_COLOR = '#d5a76b';
-        this.WALL_COLOR = '#d5a76b';
-        this.BG_COLOR = '#142b3f';
-        this.START_COLOR = '#00ff00';
-        this.END_COLOR = '#ff0000';
-        this.LINE_COLOR = '#b18ec5';
-        this.PATH_COLOR = '#b18ec5';
-        this.BEST_PATH_COLOR = 'green';
+        this.WALL_COLOR = "#d5a76b";
+        this.WALL_COLOR = "#d5a76b";
+        this.BG_COLOR = "#142b3f";
+        this.START_COLOR = "#00ff00";
+        this.END_COLOR = "#ff0000";
+        this.LINE_COLOR = "#b18ec5";
+        this.PATH_COLOR = "#b18ec5";
+        this.BEST_PATH_COLOR = "green";
         this.CELL_COLOR = this.BG_COLOR;
-        this.OBSTACLE_EDGE_COLOR = '#996600';
+        this.OBSTACLE_EDGE_COLOR = "#996600";
 
         // Cell size info
         this.cell_width = null;
@@ -53,11 +53,11 @@ class Grid {
         this.adjacency_graph = null;
 
         // Listeners
-        this.canvas_obj.addEventListener('mousemove', this.onMouseMove.bind(null, this));
-        this.canvas_obj.addEventListener('mousedown', this.onMouseDown.bind(null, this));
-        this.canvas_obj.addEventListener('mouseup', this.onMouseUp.bind(null, this));
-        this.canvas_obj.addEventListener('click', this.onMouseClick.bind(null, this));
-        this.canvas_obj.addEventListener('contextmenu', this.onMouseRightClick.bind(null, this));
+        this.canvas_obj.addEventListener("mousemove", this.onMouseMove.bind(null, this));
+        this.canvas_obj.addEventListener("mousedown", this.onMouseDown.bind(null, this));
+        this.canvas_obj.addEventListener("mouseup", this.onMouseUp.bind(null, this));
+        this.canvas_obj.addEventListener("click", this.onMouseClick.bind(null, this));
+        this.canvas_obj.addEventListener("contextmenu", this.onMouseRightClick.bind(null, this));
 
         // Mouse status helpers
         this.mouseIsDown = false;
@@ -171,7 +171,7 @@ class Grid {
                     break;
 
                 default:
-                    console.error('ERROR: Uknown object type');
+                    console.error("Uknown object type '" + obj.type + "'.");
             }
         }
     }
@@ -255,25 +255,25 @@ class Grid {
     // OBJECTS CREATION/DESTRUCTION UTILS
     addObj(name, size, cell_x, cell_y, color, type, pointList) {
         if (this.objects == null) {
-            console.error('ERROR: Grid has to be generated yet');
+            console.error("Grid has to be generated yet");
             return;
         }
 
         if (this.objects[name]) {
-            console.error('ERROR: Name "' + name + '" already used by another object');
+            console.error("Name '" + name + "' already used by another object");
             return;
         }
 
 
         if (type != this.LINE && cell_x >= this.size_x || cell_y >= this.size_y) {
-            console.error('ERROR: point (' + cell_x + ', ' + cell_y + ') outside of the grid.\n\tGrid size: ' + this.size_x + 'x' + this.size_y + '.');
+            console.error("point (" + cell_x + ", " + cell_y + ") outside of the grid.\n\tGrid size: ' + this.size_x + 'x' + this.size_y + '.");
             return;
         }
 
         if (type == this.LINE) {
             for (var i = 0; i < pointList.length; i++) {
                 if (pointList[i].x >= this.size_x || pointList[i].y >= this.size_y) {
-                    console.error('ERROR: Point (' + pointList[i].x + ', ' + pointList[i].y + ') in pointlist outside of the grid.\n\tGrid size: ' + this.size_x + 'x' + this.size_y + '.');
+                    console.error("Point (" + pointList[i].x + ", " + pointList[i].y + ") in pointlist outside of the grid.\n\tGrid size: ' + this.size_x + 'x' + this.size_y + '.");
                     return;
                 }
             }
@@ -296,7 +296,7 @@ class Grid {
 
     removeObj(name) {
         if (this.objects == null) {
-            console.error('ERROR: Grid has to be generated yet');
+            console.error("Grid has to be generated yet");
             return;
         }
 
@@ -324,7 +324,7 @@ class Grid {
         }
     }
 
-    removeWall(cell_x, cell_y, printDebug = true) {
+    removeWall(cell_x, cell_y) {
         if (this.cellIsWall(cell_x, cell_y)) {
             var name = 'w' + cell_x + "-" + cell_y;
 
@@ -332,10 +332,6 @@ class Grid {
             this.removeObj(name);
 
             this.evaluatePath();
-        } else {
-            if (printDebug) {
-                console.error("ERROR: trying to remove wall on (" + cell_x + ", " + cell_y + "), but no wall was found");
-            }
         }
     }
 
@@ -369,7 +365,7 @@ class Grid {
         if (obj = this.objects[name]) {
 
             if (obj.type != this.CIRCLE && obj.type != this.RECT) {
-                console.error('ERROR: Impossible to move this type of object');
+                console.error("Cannot move object type '" + obj.type + "'.");
                 return;
             }
 
@@ -394,12 +390,12 @@ class Grid {
                     break;
 
                 default:
-                    console.error('ERROR: Direction unknown');
+                    console.error("Direction unknown.");
             }
 
             // Check validity of movement
             if (obj.x < 0 || obj.x >= this.size_x || obj.y < 0 || obj.y >= this.size_y) {
-                console.error('ERROR: Invalid new position');
+                console.error("Invalid new position.");
                 obj.x = old_x;
                 obj.y = old_y;
             }
@@ -409,7 +405,7 @@ class Grid {
 
         }
 
-        console.error('ERROR: Object name not found');
+        console.error("Object name '" + name + "' not found.");
     }
 
     setObjectPosition(name, x, y) {
@@ -426,7 +422,7 @@ class Grid {
     // Generate the grid based on setting specified before
     generate() {
         if (this.size_x == null || this.size_y == null) {
-            console.error('ERROR: Missing size parameters');
+            console.error("Missing size parameters.");
             return false;
         }
 
@@ -485,7 +481,7 @@ class Grid {
             return null;
         }
 
-        // console.log('Cell ' + cell_x + ' - ' + cell_y);
+        // console.log("Cell ' + cell_x + ' - ' + cell_y);
 
         return {
             x: cell_x,
@@ -496,28 +492,26 @@ class Grid {
     relocateStartEnd(cell) {
         if (this.cellIsWall(cell.x, cell.y)) {
             if (grid.positionEndPoint) {
-                console.error("ERROR: trying to place 'end' point over a wall.")
+                console.error("trying to place 'end' point over a wall.")
             } else {
-                console.error("ERROR: trying to place 'start' point over a wall.")
+                console.error("trying to place 'start' point over a wall.")
             }
         } else {
             if (grid.positionEndPoint) {
                 if (!grid.objects['end'])
-                    grid.addCircle('end', grid.MEDIUM_SMALL, cell.x, cell.y, grid.END_COLOR);
+                    grid.addCircle("end", grid.MEDIUM_SMALL, cell.x, cell.y, grid.END_COLOR);
                 else
-                    grid.setObjectPosition('end', cell.x, cell.y);
+                    grid.setObjectPosition("end", cell.x, cell.y);
                 grid.positionEndPoint = false;
 
                 grid.drawPath = true;
                 this.evaluatePath();
             } else {
-                grid.removePath('decomposition');
-
                 if (!grid.objects['start'])
-                    grid.addCircle('start', grid.MEDIUM_SMALL, cell.x, cell.y, grid.START_COLOR);
+                    grid.addCircle("start", grid.MEDIUM_SMALL, cell.x, cell.y, grid.START_COLOR);
                 else {
-                    grid.setObjectPosition('start', cell.x, cell.y);
-                    grid.removeObj('end');
+                    grid.setObjectPosition("start", cell.x, cell.y);
+                    grid.removeObj("end");
                 }
 
                 grid.positionEndPoint = true;
@@ -604,7 +598,7 @@ class Grid {
             // Remove all previous paths and points, except for 'start' and 'end' points
             for (var key in this.objects) {
                 var obj = this.objects[key];
-                if (obj.type == this.LINE || (obj.type == this.CIRCLE && obj.name != 'start' && obj.name != 'end')) {
+                if (obj.type == this.LINE || (obj.type == this.CIRCLE && obj.name != 'start' && obj.name != "end")) {
                     delete this.objects[obj.name];
                 }
             }
@@ -637,8 +631,8 @@ class Grid {
             }
 
             if (pointList) {
-                this.addPath(pointList, 'path');
-                this.setObjectPosition('start', pointList[0].x, pointList[0].y);
+                this.addPath(pointList, "path");
+                this.setObjectPosition("start", pointList[0].x, pointList[0].y);
             }
         }
     }
@@ -706,7 +700,7 @@ class Grid {
             }
         }
 
-        console.log(adjacency_matrix);
+        // console.log(adjacency_matrix);
 
 
         this.adjacency_graph = new Graph(adjacency_matrix);
@@ -719,11 +713,11 @@ class Grid {
         var end_key = grid.objects['end'].x + "_" + grid.objects['end'].y;
 
         var shortest = this.adjacency_graph.findShortestPath(start_key, end_key);
-        console.log(shortest);
+        // console.log(shortest);
 
         // Null means no path available
         if (shortest == null) {
-            alert('No path found');
+            console.error("No path found.");
             return;
         }
 
@@ -731,8 +725,8 @@ class Grid {
 
         shortest.forEach(node => {
             pointList.push({
-                x: parseInt(node.split('_')[0]),
-                y: parseInt(node.split('_')[1])
+                x: parseInt(node.split("_")[0]),
+                y: parseInt(node.split("_")[1])
             });
         })
 
@@ -768,7 +762,7 @@ class Grid {
         }
 
         // All obstacle vertex plus the start and end position
-        var point_names = this.obstacle_vertex_names.concat('start').concat('end');
+        var point_names = this.obstacle_vertex_names.concat("start").concat("end");
 
         var i, j;
         var single_paths = [];
@@ -831,12 +825,12 @@ class Grid {
 
         // Shortest is a list of obstacle_vertex names
         var graph = new Graph(map);
-        var shortest = graph.findShortestPath('start', 'end');
+        var shortest = graph.findShortestPath("start", "end");
         console.log(shortest);
 
         // Null means no path available
         if (shortest == null) {
-            alert('No path found');
+            console.error("No path found.");
             return;
         }
 
@@ -1036,7 +1030,7 @@ class Grid {
                 //heuristic to understand in which direction is better to turn around the obstacle
                 var dir = "anti";
                 if (Math.abs(this.objects["end"].x - this.objects["start"].x) > Math.abs(this.objects["end"].y - this.objects["start"].y)) { // i'm moving horizontally
-                    console.log('orizzontale')
+                    console.log("orizzontale")
                     if ((toDisc[0].x < toDisc[1].x && toDisc[0].y > toDisc[1].y) || (toDisc[0].x > toDisc[1].x && toDisc[0].y < toDisc[1].y))
                         dir = "or";
                 } else { // vertically
@@ -1187,7 +1181,7 @@ class Grid {
         return path
     }
 
-    followObs(lastStep, obstacle, sense = 'anti') {
+    followObs(lastStep, obstacle, sense = "anti") {
         console.log("last ")
         console.log(lastStep);
         console.log("obs ")
