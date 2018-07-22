@@ -16,84 +16,107 @@
         <div class="card-content">
 
             <div class="row">
-                <h5>Instructions</h5>
-                <p>Use the left mouse button to place or remove obstacles.</p>
-                <p style="margin-left: 1em">
-                    <span style="font-weight: bold">Tip</span>: you can also click and drag!</p>
-                <p>Use the right mouse button to place
-                    <span class="green-text darken-1">start</span> and
-                    <span class="red-text darken-1">end</span> points. The path calculation will immediately start after placing the
-                    <span class="red-text darken-1">end</span> point.</p>
-                    <p>Path will be calculated using a planning algorithm picked from the selection below.</p>
+                <ul class="collapsible">
+                    <li>
+                        <div class="collapsible-header blue-grey lighten-4 blue-grey-text">
+                            <div class="valign-wrapper">
+                                <i class="material-icons " id="collapsible-icon">arrow_drop_down</i>
+                                <h5>Instructions</h5>
+                            </div>
+                        </div>
+                        <div class="collapsible-body white">
+                            <p style="margin-bottom: .5em">Use the left mouse button to place or remove obstacles.
+                                <span style="font-weight: bold">Tip</span>: you can also click and drag!</p>
+                            <p style="margin-bottom: .5em">Use the right mouse button to place
+                                <span class="green-text darken-1">start</span> and
+                                <span class="red-text darken-1">end</span> points. The path calculation will immediately start after placing the
+                                <span class="red-text darken-1">end</span> point.</p>
+                            <p style="margin-bottom: .5em">Path will be calculated using a planning algorithm picked from the selection below.</p>
+                        </div>
+                    </li>
+                </ul>
+
+                <br>
+
+                <div class="input-field col s12">
+                    <select id="methodSelect">
+                        <option value="decomposition" selected>Cellular Decomposition</option>
+                        <option value="visibility">Visibility Graph</option>
+                        <option value="probabilistic">Probabilistic Roadmap</option>
+                        <option value="bug1">Bug v1</option>
+                        <option value="bug2">Bug v2</option>
+                        <option value="tangent-bug">Tangent Bug</option>
+                    </select>
+                    <label>Planning algorithm</label>
+                </div>
+
             </div>
-
-            <br>
-
-            <div class="input-field col s12">
-                <select id="methodSelect">
-                    <option value="decomposition" selected>Cellular Decomposition</option>
-                    <option value="visibility">Visibility Graph</option>
-                    <option value="probabilistic">Probabilistic Roadmap</option>
-                    <option value="bug1">Bug v1</option>
-                    <option value="bug2">Bug v2</option>
-                    <option value="tangent-bug">Tangent Bug</option>
-                </select>
-                <label>Planning algorithm</label>
+            <div class="card-action center-align">
+                <button class="btn blue-grey white-text" onclick="clearWalls()">Clear walls</button>
+                <button class="btn blue-grey white-text" onclick="grid.clearPaths()">Clear path</button>
             </div>
 
         </div>
-        <div class="card-action center-align">
-            <button class="btn blue-grey white-text" onclick="clearWalls()">Clear walls</button>
-            <button class="btn blue-grey white-text" onclick="grid.clearPaths()">Clear path</button>
-        </div>
 
-    </div>
+        <script type="text/javascript" src="js/grid.js"></script>
+        <script type="text/javascript" src="libs/graph.js"></script>
+        <script type="text/javascript" src="libs/materialize.js"></script>
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+        <script>
+            var grid;
+            var width = document.body.clientWidth,
+                height = document.body.clientHeight;
 
-    <script type="text/javascript" src="js/grid.js"></script>
-    <script type="text/javascript" src="libs/graph.js"></script>
-    <script type="text/javascript" src="libs/materialize.js"></script>
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
-        crossorigin="anonymous"></script>
-    <script>
-        var grid;
-        var width = document.body.clientWidth,
-            height = document.body.clientHeight;
+            function clearWalls() {
+                grid.clearWalls();
+            }
 
-        function clearWalls() {
-            grid.clearWalls();
-        }
+            function clearPaths() {
+                grid.clearPaths();
+            }
 
-        function clearPaths() {
-            grid.clearPaths();
-        }
+            // Create class passing canvas object id
+            grid = new Grid('canvas', width, height);
 
-        // Create class passing canvas object id
-        grid = new Grid('canvas', width, height);
+            // Apply settings and generate grid on canvas
+            grid.generate();
 
-        // Apply settings and generate grid on canvas
-        grid.generate();
+            // Click listener
+            grid.setOnCellClickDrag(function (x, y) {
+                grid.toggleWall(x, y);
+            });
 
-        // Click listener
-        grid.setOnCellClickDrag(function (x, y) {
-            grid.toggleWall(x, y);
-        });
+            grid.setOnCellRightClick(function (cell) {
+                grid.relocateStartEnd(cell);
+            });
 
-        grid.setOnCellRightClick(function (cell) {
-            grid.relocateStartEnd(cell);
-        });
+            var select = document.getElementById("methodSelect");
+            grid.setAlgorithm(select.value);
+            select.onchange = function () {
+                grid.setAlgorithm(this.value);
+                grid.evaluatePath();
+            };
 
-        var select = document.getElementById("methodSelect");
-        grid.setAlgorithm(select.value);
-        select.onchange = function () {
-            grid.setAlgorithm(this.value);
-            grid.evaluatePath();
-        };
+            // material select init
+            document.addEventListener('DOMContentLoaded', function () {
+                var elems = document.querySelectorAll('select');
+                var instances = M.FormSelect.init(elems);
+            });
 
-        document.addEventListener('DOMContentLoaded', function () {
-            var elems = document.querySelectorAll('select');
-            var instances = M.FormSelect.init(elems);
-        });
-    </script>
+            // collapsible init
+            document.addEventListener('DOMContentLoaded', function () {
+                var elems = document.querySelectorAll('.collapsible');
+                var instances = M.Collapsible.init(elems, {
+                    onOpenStart: function () {
+                        document.getElementById("collapsible-icon").innerHTML = "arrow_drop_up";
+                    },
+                    onCloseStart: function () {
+                        document.getElementById("collapsible-icon").innerHTML = "arrow_drop_down";
+                    }
+                });
+            });
+        </script>
 </body>
 
 </html>
