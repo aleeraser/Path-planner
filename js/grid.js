@@ -1013,19 +1013,26 @@ class Grid {
 
         var path = [];
         for (var i = 0; i < dummyPath.length; i++) { //try to follow the dummy path
+            console.log(dummyPath[i])
             var range = this.rangeArea(dummyPath[i], 2);
+            console.log('range');
+            console.log(range);
             var free = true;
             var discontinuities = [];
             for (var j = 0; j < range.length; j++) { //check if range area is free
-                if (this.cellIsWall(range[j].x, range[j].y)) {
+                if (this.cellIsWall(range[j].x, range[j].y) || ((this.cellIsWall(range[j].x + 1, range[j].y) && this.cellIsWall(range[j].x, range[j].y - 1)) || this.cellIsWall(range[j].x + 1, range[j].y) && this.cellIsWall(range[j].x, range[j].y + 1)) || (this.cellIsWall(range[j].x - 1, range[j].y) && this.cellIsWall(range[j].x, range[j].y - 1)) || (this.cellIsWall(range[j].x - 1, range[j].y) && this.cellIsWall(range[j].x, range[j].y + 1)) ) {                    
                     discontinuities.push(range[j]); //the list of obstacles in range
                     if (this.isInPath(dummyPath, range[j]) != -1) //if there are obstacles in range, but the dummy path is free follow the dummy path
                         free = false;
                 }
             }
             if (free) { //if free follow the dummy path
+                console.log(dummyPath[i])
+                console.log("free")
                 path.push(dummyPath[i])
             } else {
+                console.log(dummyPath[i])
+                console.log("free")
                 var min;
                 var minDist = 100;
                 console.log("-------- ")
@@ -1041,6 +1048,7 @@ class Grid {
                             dist = 100;
                     }
                     if (dist < minDist) {
+                        console.log(discontinuities[j])
                         min = discontinuities[j];
                         minDist = dist;
                     }
@@ -1124,7 +1132,9 @@ class Grid {
             if (count < 2)
                 disc.push(obs[i])
         }
-        return disc
+        if (disc.length > 0)
+            return disc
+        return(obs)
     }
 
     pathCost(path) {
@@ -1142,8 +1152,8 @@ class Grid {
 
     rangeArea(o, r) { //o is a point object, and r is the radio of the circonference ( in our case it will be a square, according to our distance definition, as the number of steps)
         var range = [];
-        for (var i = 0; i < this.size.y; i++) {
-            for (var j = 0; j < this.size.x; j++) {
+        for (var i = 0; i < this.size.x; i++) {
+            for (var j = 0; j < this.size.y; j++) {
                 if (o.x - r <= i && i <= o.x + r && o.y - r <= j && j <= o.y + r) {
                     range.push({
                         x: i,
