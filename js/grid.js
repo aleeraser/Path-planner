@@ -1085,6 +1085,8 @@ class Grid {
             var dummy = this.findDummyPath(newStep, end);
             var range = this.rangeArea(newStep, 1);
             var free = true;
+            var dFollowed = this.pathCost(this.findDummyPath(obstacle,end))
+            var dReach = this.pathCost(this.findDummyPath(newStep, end))
             for (var j = 0; j < range.length; j++) { //check if range area is free
                 if (this.cellIsWall(range[j].x, range[j].y) || ((this.cellIsWall(range[j].x + 1, range[j].y) && this.cellIsWall(range[j].x, range[j].y - 1)) || this.cellIsWall(range[j].x + 1, range[j].y) && this.cellIsWall(range[j].x, range[j].y + 1)) || (this.cellIsWall(range[j].x - 1, range[j].y) && this.cellIsWall(range[j].x, range[j].y - 1)) || (this.cellIsWall(range[j].x - 1, range[j].y) && this.cellIsWall(range[j].x, range[j].y + 1))) {
                     if (this.isInPath(dummy, range[j]) != -1) { //if there are obstacles in range, but the dummy path is free follow the dummy path
@@ -1094,7 +1096,7 @@ class Grid {
                     }
                 }
             }
-            if (free) { //nota se non ho mai il dummy path libero a distanza 2 mi fotto..
+            if (free && dReach < dFollowed ) { //nota se non ho mai il dummy path libero a distanza 2 mi fotto..
                 return path
             }
             return this.boundaryFollow(newStep, obstacle, end, dir, path);
