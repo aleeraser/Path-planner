@@ -372,6 +372,18 @@ class Grid {
             this.evaluatePath();
         }
     }
+    
+    clearWalls() {
+        for (var key in this.objects) {
+            var obj = this.objects[key];
+            if (obj.type == this.RECT) {
+                this.removeWall(obj.x, obj.y);
+            }
+        }
+        if (this.drawPath) {
+            this.evaluatePath;
+        }
+    }
 
     toggleWall(cell_x, cell_y) {
         if (!this.cellIsWall(cell_x, cell_y))
@@ -395,6 +407,16 @@ class Grid {
 
     removePath(name) {
         this.removeObj(name);
+    }
+
+    clearPaths() {
+        for (var key in this.objects) {
+            var obj = this.objects[key];
+            if (obj.type == this.LINE) {
+                this.removePath(obj.name);
+            }
+        }
+        this.drawPath = false;
     }
 
     moveObject(name, direction) {

@@ -2,57 +2,67 @@
 
 <head>
     <title>Canvas Grid</title>
-    <link rel="stylesheet" type="text/css" href="css/slider.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link type="text/css" rel="stylesheet" href="css/materialize.css" media="screen,projection" />
     <link rel="stylesheet" type="text/css" href="css/general.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+
 </head>
 
 <body>
-    <div style='margin:0.1em;' class="parentDiv">
-        <canvas id="canvas" style="border:1px solid teal;">
-        </canvas>
-        <div id="settings">
-            <p>Cell number:</p>
-            <input type="range" min="1" max="60" value="30" class="slider" id="cellNumberSlider"></input>
-            <p> Planning method:</p>
-            <select class="form-control settingSelect" id="methodSelect">
-                <option value="decomposition">Cellular Decomposition</option>
-                <option value="visibility">Visibility Graph</option>
-                <option value="probabilistic">Probabilistic Roadmap</option>
-                <option value="bug1">Bug1</option>
-                <option value="bug2">Bug2</option>
-                <option value="tangent-bug">Tangent Bug</option>
-            </select>
-            </br>
-            <button type="button" class="btn btn-default" onclick="redrawGrid()">Set and Redraw</button>
+    <canvas id="canvas"></canvas>
+    <!-- <div class="container"> -->
+    <div class="card blue-grey lighten-5">
+        <div class="card-content">
+
+            <div class="input-field col s12">
+                <p>Cell number</p>
+                <input type="range" min="1" max="60" value="30" id="cellNumberSlider"></input>
+            </div>
+
+            <br>
+
+            <div class="input-field col s12">
+                <select id="methodSelect">
+                    <option value="decomposition" selected>Cellular Decomposition</option>
+                    <option value="visibility">Visibility Graph</option>
+                    <option value="probabilistic">Probabilistic Roadmap</option>
+                    <option value="bug1">Bug1</option>
+                    <option value="bug2">Bug2</option>
+                    <option value="tangent-bug">Tangent Bug</option>
+                </select>
+                <label>Planning algorithm</label>
+            </div>
+
         </div>
+        <div class="card-action center-align">
+            <button class="btn blue-grey white-text" onclick="clearWalls()">Clear walls</button>
+            <button class="btn blue-grey white-text" onclick="grid.clearPaths()">Clear path</button>
+        </div>
+
     </div>
 
-    <script src="js/grid.js"></script>
-    <script src="js/libs/graph.js"></script>
+    <script type="text/javascript" src="js/grid.js"></script>
+    <script type="text/javascript" src="libs/graph.js"></script>
+    <script type="text/javascript" src="libs/materialize.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+        crossorigin="anonymous"></script>
     <script>
         var grid;
-        var side_length = 500,
-            cell_number = 30,
-            cell_spacing = 0;
+        var width = document.body.clientWidth,
+            height = document.body.clientHeight,
+            cell_number = 20;
 
-        function redrawGrid() {
-            grid.setSize(cell_number, cell_number);
-            grid.generate();
+        function clearWalls() {
+            grid.clearWalls();
+        }
+
+        function clearPaths() {
+            grid.clearPaths();
         }
 
         // Create class passing canvas object id
-        grid = new Grid('canvas', side_length, cell_number);
-
-        // Pixels between cells
-        grid.setSpacing(cell_spacing, cell_spacing);
-
-        // Colors
-        grid.setBackgroundColor(grid.BG_COLOR);
-        grid.setCellsColor(grid.BG_COLOR);
-
+        grid = new Grid('canvas', width, height, cell_number);
 
         // Apply settings and generate grid on canvas
         grid.generate();
@@ -77,6 +87,11 @@
             grid.setAlgorithm(this.value);
             grid.evaluatePath();
         };
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var elems = document.querySelectorAll('select');
+            var instances = M.FormSelect.init(elems);
+        });
     </script>
 </body>
 

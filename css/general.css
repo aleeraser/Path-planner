@@ -1,13 +1,6 @@
-.parentDiv div {
-    float: left;
-    clear: none;
-}
-
-#settings {
-    width: 30%;
-    margin: 1em;
-}
-
-.settingSelect {
-    width: auto;
+.card {
+    position: fixed;
+    top: 2em;
+    left: 2em;
+    min-width: 20em;
 }
