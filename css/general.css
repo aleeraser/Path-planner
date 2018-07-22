@@ -6,6 +6,10 @@
     word-wrap: break-word;
 }
 
+.card-content {
+    cursor: move;
+}
+
 #collapsible-icon {
     padding-top: .2em;
 }
