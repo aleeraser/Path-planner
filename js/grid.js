@@ -542,6 +542,15 @@ class Grid {
                 console.error("trying to place 'start' point over a wall.")
             }
         } else {
+            // Remove all previous paths
+            for (var key in this.objects) {
+                var obj = this.objects[key];
+                if (obj.type == this.LINE) {
+                    delete this.objects[obj.name];
+                }
+            }
+
+
             if (grid.positionEndPoint) {
                 if (!grid.objects['end'])
                     grid.addCircle("end", grid.MEDIUM_SMALL, cell.x, cell.y, grid.END_COLOR);
