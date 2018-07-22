@@ -9,7 +9,7 @@
 
 </head>
 
-<body>
+<body class="dark-theme">
     <canvas id="canvas"></canvas>
     <!-- <div class="container"> -->
     <div class="card blue-grey lighten-5">
@@ -20,18 +20,18 @@
                     <li>
                         <div class="collapsible-header blue-grey lighten-4 blue-grey-text">
                             <div class="valign-wrapper">
-                                <i class="material-icons " id="collapsible-icon">arrow_drop_down</i>
+                                <i class="material-icons " id="collapsible-icon">chevron_right</i>
                                 <h5>Instructions</h5>
                             </div>
                         </div>
                         <div class="collapsible-body white">
-                            <p style="margin-bottom: .5em">Use the left mouse button to place or remove obstacles.
+                            <p>Use the left mouse button to place or remove obstacles.
                                 <span style="font-weight: bold">Tip</span>: you can also click and drag!</p>
-                            <p style="margin-bottom: .5em">Use the right mouse button to place
+                            <p>Use the right mouse button to place
                                 <span class="green-text darken-1">start</span> and
                                 <span class="red-text darken-1">end</span> points. The path calculation will immediately start after placing the
                                 <span class="red-text darken-1">end</span> point.</p>
-                            <p style="margin-bottom: .5em">Path will be calculated using a planning algorithm picked from the selection below.</p>
+                            <p>Path will be calculated using a planning algorithm picked from the selection below.</p>
                         </div>
                     </li>
                 </ul>
@@ -48,6 +48,24 @@
                         <option value="tangent-bug">Tangent Bug</option>
                     </select>
                     <label>Planning algorithm</label>
+                </div>
+
+                <br>
+
+                <div class="input-field col s12">
+                    <p id="theme-header" class="label">Theme</p>
+                    <p>
+                        <label>
+                            <input type="radio" class="with-gap" name="theme" value="dark" onclick="updateTheme(this);" checked />
+                            <span class="theme-option">Dark</span>
+                        </label>
+                    </p>
+                    <p>
+                        <label>
+                            <input type="radio" class="with-gap" name="theme" value="light" onclick="updateTheme(this);" />
+                            <span class="theme-option">Light</span>
+                        </label>
+                    </p>
                 </div>
 
             </div>
@@ -109,13 +127,41 @@
                 var elems = document.querySelectorAll('.collapsible');
                 var instances = M.Collapsible.init(elems, {
                     onOpenStart: function () {
-                        document.getElementById("collapsible-icon").innerHTML = "arrow_drop_up";
+                        document.getElementById("collapsible-icon").innerHTML = "arrow_drop_down";
                     },
                     onCloseStart: function () {
-                        document.getElementById("collapsible-icon").innerHTML = "arrow_drop_down";
+                        document.getElementById("collapsible-icon").innerHTML = "chevron_right";
                     }
                 });
             });
+
+            // theme selection
+            var currentTheme = "dark";
+
+            function updateTheme(myRadio) {
+
+                currentTheme = myRadio.value;
+
+                if (currentTheme == "light") {
+                    $("body").removeClass("dark-theme").addClass("light-theme");
+                    $(".card").removeClass("lighten-5").addClass("darken-3");
+                    $(".collapsible-header").removeClass("lighten-4").addClass("text-lighten-4");
+                    $(".collapsible-body").removeClass("white").addClass("blue-grey").addClass("darken-1").addClass(
+                        "blue-grey-text").addClass("text-lighten-4");
+                    $("#theme-header").addClass("blue-grey-text").addClass("text-lighten-2");
+                    $(".theme-option").addClass("blue-grey-text").addClass("text-lighten-4");
+                    grid.lightTheme(true);
+                } else if (currentTheme == "dark") {
+                    $("body").removeClass("light-theme").addClass("dark-theme");
+                    $(".card").removeClass("darken-3").addClass("lighten-5");
+                    $(".collapsible-header").removeClass("text-lighten-4").addClass("lighten-4");
+                    $(".collapsible-body").removeClass("blue-grey").removeClass("darken-1").removeClass(
+                        "blue-grey-text").removeClass("text-lighten-4").addClass("white");
+                    $("#theme-header").removeClass("blue-grey-text").removeClass("text-lighten-2");
+                    $(".theme-option").removeClass("blue-grey-text").removeClass("text-lighten-4");
+                    grid.darkTheme(true);
+                }
+            }
         </script>
 </body>
 

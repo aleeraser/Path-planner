@@ -35,15 +35,7 @@ class Grid {
         this.setSpacing(1, 1);
 
         // Color configurations
-        this.WALL_COLOR = "#d5a76b";
-        this.BG_COLOR = "#eeeeee";
-        this.START_COLOR = "#00ff00";
-        this.END_COLOR = "#ff0000";
-        this.LINE_COLOR = "#b18ec5";
-        this.PATH_COLOR = "#b18ec5";
-        this.BEST_PATH_COLOR = "green";
-        this.CELL_COLOR = "#142b3f";
-        this.OBSTACLE_EDGE_COLOR = "#996600";
+        this.darkTheme();
 
         // Cell size info
         this.cell_width = null;
@@ -161,6 +153,34 @@ class Grid {
     setAlgorithm(algorithm) {
         this.algorithm = algorithm;
     }
+    darkTheme(refresh = false) {
+        this.WALL_COLOR = "#d5a76b";
+        this.BG_COLOR = "#aaaaaa";
+        this.START_COLOR = "#00ff00";
+        this.END_COLOR = "#ff0000";
+        this.LINE_COLOR = "#b18ec5";
+        this.PATH_COLOR = "#b18ec5";
+        this.BEST_PATH_COLOR = "green";
+        this.CELL_COLOR = "#142b3f";
+        this.OBSTACLE_EDGE_COLOR = "#996600";
+        this.WALL_BORDER = "white";
+
+        if (refresh) this.updateGraphics();
+    }
+    lightTheme(refresh = false) {
+        this.WALL_COLOR = "#d5a76b";
+        this.BG_COLOR = "gray";
+        this.START_COLOR = "#00ff00";
+        this.END_COLOR = "#ff0000";
+        this.LINE_COLOR = "#b18ec5";
+        this.PATH_COLOR = "#b18ec5";
+        this.BEST_PATH_COLOR = "green";
+        this.CELL_COLOR = "#f4f4f4";
+        this.OBSTACLE_EDGE_COLOR = "#996600";
+        this.WALL_BORDER = "gray"
+
+        if (refresh) this.updateGraphics();
+    }
 
 
 
@@ -229,7 +249,7 @@ class Grid {
         this.context.fillStyle = obj.color;
         this.context.fillRect(pos.x, pos.y, size.x, size.y);
         this.context.lineWidth = 3;
-        this.context.strokeStyle = "white";
+        this.context.strokeStyle = this.WALL_BORDER;
         this.context.strokeRect(pos.x, pos.y, size.x, size.y);
     }
 
@@ -1020,7 +1040,7 @@ class Grid {
             var free = true;
             var discontinuities = [];
             for (var j = 0; j < range.length; j++) { //check if range area is free
-                if (this.cellIsWall(range[j].x, range[j].y) || ((this.cellIsWall(range[j].x + 1, range[j].y) && this.cellIsWall(range[j].x, range[j].y - 1)) || this.cellIsWall(range[j].x + 1, range[j].y) && this.cellIsWall(range[j].x, range[j].y + 1)) || (this.cellIsWall(range[j].x - 1, range[j].y) && this.cellIsWall(range[j].x, range[j].y - 1)) || (this.cellIsWall(range[j].x - 1, range[j].y) && this.cellIsWall(range[j].x, range[j].y + 1)) ) {                    
+                if (this.cellIsWall(range[j].x, range[j].y) || ((this.cellIsWall(range[j].x + 1, range[j].y) && this.cellIsWall(range[j].x, range[j].y - 1)) || this.cellIsWall(range[j].x + 1, range[j].y) && this.cellIsWall(range[j].x, range[j].y + 1)) || (this.cellIsWall(range[j].x - 1, range[j].y) && this.cellIsWall(range[j].x, range[j].y - 1)) || (this.cellIsWall(range[j].x - 1, range[j].y) && this.cellIsWall(range[j].x, range[j].y + 1))) {
                     discontinuities.push(range[j]); //the list of obstacles in range
                     if (this.isInPath(dummyPath, range[j]) != -1) //if there are obstacles in range, but the dummy path is free follow the dummy path
                         free = false;
@@ -1134,7 +1154,7 @@ class Grid {
         }
         if (disc.length > 0)
             return disc
-        return(obs)
+        return (obs)
     }
 
     pathCost(path) {
