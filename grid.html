@@ -15,13 +15,27 @@
     <div class="card blue-grey lighten-5">
         <div class="card-content">
 
+            <div class="row">
+                <h5>Instructions</h5>
+                <p>Use the left mouse button to place or remove obstacles.</p>
+                <p style="margin-left: 1em">
+                    <span style="font-weight: bold">Tip</span>: you can also click and drag!</p>
+                <p>Use the right mouse button to place
+                    <span class="green-text darken-1">start</span> and
+                    <span class="red-text darken-1">end</span> points. The path calculation will immediately start after placing the
+                    <span class="red-text darken-1">end</span> point.</p>
+                    <p>Path will be calculated using a planning algorithm picked from the selection below.</p>
+            </div>
+
+            <br>
+
             <div class="input-field col s12">
                 <select id="methodSelect">
                     <option value="decomposition" selected>Cellular Decomposition</option>
                     <option value="visibility">Visibility Graph</option>
                     <option value="probabilistic">Probabilistic Roadmap</option>
-                    <option value="bug1">Bug1</option>
-                    <option value="bug2">Bug2</option>
+                    <option value="bug1">Bug v1</option>
+                    <option value="bug2">Bug v2</option>
                     <option value="tangent-bug">Tangent Bug</option>
                 </select>
                 <label>Planning algorithm</label>

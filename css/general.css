@@ -2,5 +2,6 @@
     position: fixed;
     top: 2em;
     left: 2em;
-    min-width: 20em;
+    width: 30em;
+    word-wrap: break-word;
 }
