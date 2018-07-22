@@ -38,6 +38,7 @@ class Grid {
         this.darkTheme();
 
         // Cell size info
+        this.cellSideLength = 30;
         this.cell_width = null;
         this.cell_height = null;
         this.grid_matrix = null;
@@ -73,6 +74,35 @@ class Grid {
         this.drawPath = false;
     }
 
+    increaseCellsSize(button) {
+        this.cellSideLength += 10;
+        this.canvas_obj.setAttribute("width", parseInt(this.canvas_obj.getAttribute("width")) + 15);
+        this.canvas_obj.setAttribute("height", parseInt(this.canvas_obj.getAttribute("height")) + 15);
+        this.clearCanvas();
+        this.generate();
+        this.updateGraphics();
+
+        if (this.cellSideLength == 70) {
+            button.disabled = true;
+        }
+        document.getElementById("decreaseCellsSize").disabled = false;
+    }
+
+    decreaseCellsSize(button) {
+        this.cellSideLength -= 10;
+        this.canvas_obj.setAttribute("width", parseInt(this.canvas_obj.getAttribute("width")) - 15);
+        this.canvas_obj.setAttribute("height", parseInt(this.canvas_obj.getAttribute("height")) - 15);
+        this.clearCanvas();
+        this.generate();
+        this.updateGraphics();
+
+        if (this.cellSideLength == 30) {
+            button.disabled = true;
+        }
+
+        document.getElementById("increaseCellsSize").disabled = false;
+    }
+
     // Generate the grid based on setting specified before
     generate() {
         if (this.size.x == null || this.size.y == null) {
@@ -80,16 +110,14 @@ class Grid {
             return false;
         }
 
-        var cell_side_lenght = 30;
-
-        var x = Math.ceil(((this.canvas_obj.width - this.spacing_x) / cell_side_lenght) - this.spacing_x);
-        var y = Math.ceil(((this.canvas_obj.height - this.spacing_y) / cell_side_lenght) - this.spacing_y);
+        var x = Math.ceil(((this.canvas_obj.width - this.spacing_x) / this.cellSideLength) - this.spacing_x);
+        var y = Math.ceil(((this.canvas_obj.height - this.spacing_y) / this.cellSideLength) - this.spacing_y);
 
         var cell_n = {
             x: x,
             y: y
         };
-        console.log("There can be " + cell_n.x + "x" + cell_n.y + " cells of side 100.");
+        // console.log("There can be " + cell_n.x + "x" + cell_n.y + " cells of side 100.");
 
         this.size = cell_n;
 
@@ -101,7 +129,7 @@ class Grid {
         this.cell_height = (this.canvas_obj.height - this.spacing_y) / (cell_n.y + this.spacing_y);
         // this.cell_height = cell_side_lenght;
 
-        console.log(this.cell_width, this.cell_height);
+        // console.log(this.cell_width, this.cell_height);
 
         this.grid_matrix = [];
         this.wall_map = [];

@@ -10,6 +10,10 @@
     cursor: move;
 }
 
+.instruction-header button {
+    margin-left: 1em;
+}
+
 #collapsible-icon {
     padding-top: .2em;
 }

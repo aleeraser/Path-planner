@@ -52,7 +52,7 @@
                 <br>
 
                 <div class="input-field col s12">
-                    <p id="theme-header" class="label">Theme</p>
+                    <p class="label instruction-header">Theme</p>
                     <p>
                         <label>
                             <input type="radio" class="with-gap" name="theme" value="dark" onclick="updateTheme(this);" checked />
@@ -64,6 +64,19 @@
                             <input type="radio" class="with-gap" name="theme" value="light" onclick="updateTheme(this);" />
                             <span class="theme-option">Light</span>
                         </label>
+                    </p>
+                </div>
+
+                <br>
+
+                <div class="input-field col s12">
+                    <p class="instruction-header">Adjust cells size
+                        <button id="decreaseCellsSize" class="btn blue-grey white-text" disabled onclick="grid.decreaseCellsSize(this)">
+                            <i class="material-icons">zoom_out</i>
+                        </button>
+                        <button id="increaseCellsSize" class="btn blue-grey white-text" onclick="grid.increaseCellsSize(this)">
+                            <i class="material-icons">zoom_in</i>
+                        </button>
                     </p>
                 </div>
 
@@ -147,7 +160,7 @@
                     $(".collapsible-header").removeClass("lighten-4").addClass("text-lighten-4");
                     $(".collapsible-body").removeClass("white").addClass("blue-grey").addClass("darken-1").addClass(
                         "blue-grey-text").addClass("text-lighten-4");
-                    $("#theme-header").addClass("blue-grey-text").addClass("text-lighten-2");
+                    $(".instruction-header").addClass("blue-grey-text").addClass("text-lighten-2");
                     $(".theme-option").addClass("blue-grey-text").addClass("text-lighten-4");
                     grid.lightTheme(true);
                 } else if (currentTheme == "dark") {
@@ -156,7 +169,7 @@
                     $(".collapsible-header").removeClass("text-lighten-4").addClass("lighten-4");
                     $(".collapsible-body").removeClass("blue-grey").removeClass("darken-1").removeClass(
                         "blue-grey-text").removeClass("text-lighten-4").addClass("white");
-                    $("#theme-header").removeClass("blue-grey-text").removeClass("text-lighten-2");
+                    $(".instruction-header").removeClass("blue-grey-text").removeClass("text-lighten-2");
                     $(".theme-option").removeClass("blue-grey-text").removeClass("text-lighten-4");
                     grid.darkTheme(true);
                 }
