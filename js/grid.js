@@ -1032,7 +1032,7 @@ class Grid {
                 path.push(dummyPath[i])
             } else {
                 console.log(dummyPath[i])
-                console.log("free")
+                console.log("not free")
                 var min;
                 var minDist = 100;
                 console.log("-------- ")
@@ -1044,7 +1044,7 @@ class Grid {
                     var toDisc = this.findDummyPath(dummyPath[i], discontinuities[j]);
                     var dist = this.pathCost(this.findDummyPath(discontinuities[j], grid.objects['end'])) + this.pathCost(toDisc) //the distance is given by the sum of the distances between you and the discontinuity and between the discontinuity and the end
                     for (var z = 0; z < toDisc.length - 1; z++) { // check that the path to the discontinuity is free
-                        if (this.cellIsWall(toDisc[z].x, toDisc[z].y))
+                        if (this.cellIsWall(toDisc[z].x, toDisc[z].y) || ((this.cellIsWall(toDisc[z].x + 1, toDisc[z].y) && this.cellIsWall(toDisc[z].x, toDisc[z].y - 1)) || this.cellIsWall(toDisc[z].x + 1, toDisc[z].y) && this.cellIsWall(toDisc[z].x, toDisc[z].y + 1)) || (this.cellIsWall(toDisc[z].x - 1, toDisc[z].y) && this.cellIsWall(toDisc[z].x, toDisc[z].y - 1)) || (this.cellIsWall(toDisc[z].x - 1, toDisc[z].y) && this.cellIsWall(toDisc[z].x, toDisc[z].y + 1)))
                             dist = 100;
                     }
                     if (dist < minDist) {
@@ -1086,8 +1086,9 @@ class Grid {
             var range = this.rangeArea(newStep, 1);
             var free = true;
             for (var j = 0; j < range.length; j++) { //check if range area is free
-                if (this.cellIsWall(range[j].x, range[j].y)) {
+                if (this.cellIsWall(range[j].x, range[j].y) || ((this.cellIsWall(range[j].x + 1, range[j].y) && this.cellIsWall(range[j].x, range[j].y - 1)) || this.cellIsWall(range[j].x + 1, range[j].y) && this.cellIsWall(range[j].x, range[j].y + 1)) || (this.cellIsWall(range[j].x - 1, range[j].y) && this.cellIsWall(range[j].x, range[j].y - 1)) || (this.cellIsWall(range[j].x - 1, range[j].y) && this.cellIsWall(range[j].x, range[j].y + 1))) {
                     if (this.isInPath(dummy, range[j]) != -1) { //if there are obstacles in range, but the dummy path is free follow the dummy path
+                        console.log("not free in folow")
                         free = false;
                         break;
                     }
