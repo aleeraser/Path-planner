@@ -214,7 +214,7 @@ class Grid {
     }
 
     drawRect(obj) {
-        var cell = this.grid_matrix[obj.x][obj.y];        
+        var cell = this.grid_matrix[obj.x][obj.y];
 
         var size = {
             x: this.cell_width * obj.size,
@@ -325,7 +325,7 @@ class Grid {
             type: type,
             color: color,
             pointList: pointList
-        }        
+        }
 
         this.objects[name] = obj;
 
@@ -353,6 +353,12 @@ class Grid {
 
     addWall(cell_x, cell_y) {
         if (!this.cellIsWall(cell_x, cell_y)) {
+            if (this.objects["start"] && cell_x == this.objects["start"].x && cell_y == this.objects["start"].y) {
+                return;
+            } else if (this.objects["end"] && cell_x == this.objects["end"].x && cell_y == this.objects["end"].y) {
+                return;
+            }
+
             var name = 'w' + cell_x + "-" + cell_y;
 
             this.addRect(name, this.MAX, cell_x, cell_y, this.WALL_COLOR);
@@ -372,7 +378,7 @@ class Grid {
             this.evaluatePath();
         }
     }
-    
+
     clearWalls() {
         for (var key in this.objects) {
             var obj = this.objects[key];
