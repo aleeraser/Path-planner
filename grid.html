@@ -16,13 +16,6 @@
         <div class="card-content">
 
             <div class="input-field col s12">
-                <p>Cell number</p>
-                <input type="range" min="1" max="60" value="30" id="cellNumberSlider"></input>
-            </div>
-
-            <br>
-
-            <div class="input-field col s12">
                 <select id="methodSelect">
                     <option value="decomposition" selected>Cellular Decomposition</option>
                     <option value="visibility">Visibility Graph</option>
@@ -50,8 +43,7 @@
     <script>
         var grid;
         var width = document.body.clientWidth,
-            height = document.body.clientHeight,
-            cell_number = 20;
+            height = document.body.clientHeight;
 
         function clearWalls() {
             grid.clearWalls();
@@ -62,7 +54,7 @@
         }
 
         // Create class passing canvas object id
-        grid = new Grid('canvas', width, height, cell_number);
+        grid = new Grid('canvas', width, height);
 
         // Apply settings and generate grid on canvas
         grid.generate();
@@ -75,11 +67,6 @@
         grid.setOnCellRightClick(function (cell) {
             grid.relocateStartEnd(cell);
         });
-
-        var slider = document.getElementById("cellNumberSlider");
-        slider.oninput = function () {
-            cell_number = this.value;
-        };
 
         var select = document.getElementById("methodSelect");
         grid.setAlgorithm(select.value);
