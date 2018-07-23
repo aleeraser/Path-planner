@@ -1304,23 +1304,29 @@ class Grid {
                     }
                 }
                 var toDisc = this.findDummyPath(dummyPath[i], min);
-                console.log("toDisc");
-                console.log(toDisc)
-                path = path.concat(toDisc);
-                path.pop();
-                //now boundary following 
-                //heuristic to understand in which direction is better to turn around the obstacle
-                var dir = "anti";
-                if (Math.abs(this.objects["end"].x - this.objects["start"].x) > Math.abs(this.objects["end"].y - this.objects["start"].y)) { // i'm moving horizontally
-                    console.log("orizzontale")
-                    if ((toDisc[0].x < toDisc[1].x && toDisc[0].y > toDisc[1].y) || (toDisc[0].x > toDisc[1].x && toDisc[0].y < toDisc[1].y))
-                        dir = "or";
-                } else { // vertically
-                    if ((toDisc[0].x > toDisc[1].x && toDisc[0].y > toDisc[1].y) || (toDisc[0].x < toDisc[1].x && toDisc[0].y < toDisc[1].y))
-                        dir = "or";
+                if (toDisc.length >1){
+                    console.log("toDisc");
+                    console.log(toDisc)
+                    path = path.concat(toDisc);
+                    path.pop();
+                    //now boundary following 
+                    //heuristic to understand in which direction is better to turn around the obstacle
+                    var dir = "anti";
+                    if (Math.abs(this.objects["end"].x - this.objects["start"].x) > Math.abs(this.objects["end"].y - this.objects["start"].y)) { // i'm moving horizontally
+                        console.log("orizzontale")
+                        if ((toDisc[0].x < toDisc[1].x && toDisc[0].y > toDisc[1].y) || (toDisc[0].x > toDisc[1].x && toDisc[0].y < toDisc[1].y))
+                            dir = "or";
+                    } else { // vertically
+                        if ((toDisc[0].x > toDisc[1].x && toDisc[0].y > toDisc[1].y) || (toDisc[0].x < toDisc[1].x && toDisc[0].y < toDisc[1].y))
+                            dir = "or";
+                    }
+                    console.log(dir)
+                    this.boundaryFollow(toDisc[toDisc.length - 2], min, this.objects["end"], dir, path);
                 }
-                console.log(dir)
-                this.boundaryFollow(toDisc[toDisc.length - 2], min, this.objects["end"], dir, path);
+                else {
+                    path.push(dummyPath[i]);
+                    this.boundaryFollow(dummyPath[i], dummyPath[i+1], this.objects["end"], "anti", path);
+                }
                 dummyPath = this.findDummyPath(path[path.length - 1], this.objects["end"]);
                 i = 0;
             }
@@ -1332,6 +1338,8 @@ class Grid {
         var newStep = this.followObs(last, obstacle, dir);
         if (!this.cellIsWall(newStep.x, newStep.y)) {
             path.push(newStep);
+            if (newStep.x == this.objects["end"].x && newStep.y == this.objects["end"].y)
+                return path;
             var dummy = this.findDummyPath(newStep, end);
             var range = this.rangeArea(newStep, 1);
             var free = true;
@@ -1356,7 +1364,9 @@ class Grid {
     }
 
     findDiscontinuities(obs) {
-        var disc = [];
+        var disc = []; //discontinuities
+        var paths = []; //path do destination, used to understand if the discontinuity if behind another one
+        var counts = []; //count of near onjects used to undertand if the obsacle is a discontinuity
         for (var i = 0; i < obs.length; i++) {
             var count = 0;
             var nears = []
@@ -1379,15 +1389,37 @@ class Grid {
             for (var j = 0; j < nears.length; j++) {
                 if (this.isInPath(obs, nears[j]) != -1)
                     count += 1
-                if (count == 2)
+                if (count > 3)
                     break
             }
-            if (count < 2)
-                disc.push(obs[i])
+            if (count <= 3) {
+                disc.push(obs[i]);
+                counts.push(count);
+                paths.push(this.findDummyPath(obs[i], this.objects["end"]));
+            }
         }
-        if (disc.length > 0)
-            return disc
-        return (obs)
+        var min = Math.min(...counts);
+        console.log("min " + min);
+        console.log(disc);
+        var res = [];
+        for (var i = 0; i <= disc.length; i++) {
+            if (counts[i] <= min || counts[i] < 2) {
+                var first = true;
+                for (var j = 0; j < disc.length; j++) { //check that the discontinuity does not appear in the path from another one to the destination
+                    if (i != j) {
+                        if (this.isInPath(paths[j], disc[i]) != -1) {
+                            first = false;
+                            break;
+                        }
+                    }
+                }
+                if (first)
+                    res.push(disc[i]);
+            }
+        }
+        if (res.length > 0)
+            return res
+        return (disc)
     }
 
     pathCost(path) {
@@ -1541,6 +1573,8 @@ class Grid {
         var dist = this.pathCost(dummy);
         obj.circumnavigation.push(newStep);
         obj.dists.push(dist)
+        if (newStep.x == this.objects["end"].x && newStep.y == this.objects["end"].y)
+            return obj;
         console.log("new ");
         console.log(newStep);
         if (!this.cellIsWall(newStep.x, newStep.y)) {
