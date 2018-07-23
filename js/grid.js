@@ -1544,6 +1544,8 @@ class Grid {
         var dist = this.pathCost(dummy);
         obj.circumnavigation.push(newStep);
         obj.dists.push(dist)
+        if (newStep.x == this.objects["end"].x && newStep.y == this.objects["end"].y)
+            return obj;
         console.log("new ");
         console.log(newStep);
         if (!this.cellIsWall(newStep.x, newStep.y)) {
