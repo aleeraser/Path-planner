@@ -696,6 +696,9 @@ class Grid {
                 case "decomposition":
                     pointList = this.findPath();
                     break;
+                case "potential":
+                    pointList = this.potentialField();
+                    break;    
                 case "bug1":
                     pointList = this.bug1(this.findDummyPath(this.objects['start'], this.objects['end']));
                     break;
@@ -1015,6 +1018,167 @@ class Grid {
         }
     }
 
+
+
+    // Potential Fields methods
+    potentialField() {
+        
+        var STATIONARY_THRESHOLD = 5;
+        this.DEST_VALUE = 0;
+        this.WALL_VALUE = 1000;
+        this.EMPTY_VALUE = 900;
+
+        // Potential matrix, initialized to:
+        //      0 in destination cell
+        //      1 in every wall cell
+        //      0.5 in every other empty cell
+        this.potential_map = [];
+        for (var i = 0; i < this.size.x; i++) {
+            var l = []
+            for (var j = 0; j < this.size.y; j++) {
+                // Wall
+                if (this.wall_map[i][j] == 1) {
+                    l.push(this.WALL_VALUE);
+                }
+                else {
+                    // End
+                    if (this.objects['end'].x == i && this.objects['end'].y == j) {
+                        l.push(this.DEST_VALUE);
+                        console.log("End is in x=" + i + " y=" + j);
+                    }
+                    else {
+                        l.push(this.EMPTY_VALUE);
+                    }
+                }
+            }
+            this.potential_map.push(l);
+        }
+        console.log("Potential map:");
+        console.log(this.potential_map);
+
+
+        // If potential field has been fully evaluated
+        var stationary = false;
+
+        // Next step potential field map
+        this.potential_map_step = new Array(this.size.x);
+        for(var j = 0; j < this.size.x; j++) {
+            this.potential_map_step[j] = new Array(this.size.y);
+        }
+
+        // Starting from the known values, calculate the potential field
+        while (!stationary) {
+            this.calculatePotentialStep();
+            stationary = this.checkIfStationary(STATIONARY_THRESHOLD);
+            this.potential_map = this.potential_map_step;
+            
+            this.potential_map_step = new Array(this.size.x);
+            for(var j = 0; j < this.size.x; j++) {
+                this.potential_map_step[j] = new Array(this.size.y);
+            }
+        }
+
+        // Follow potential from start position
+        var position = {
+            x: this.objects['start'].x,
+            y: this.objects['start'].y
+        };
+
+        var path = [position];
+
+        while (position.x != this.objects['end'].x || position.y != this.objects['end'].y) {
+            position = this.performPotentialStep(position);
+            path.push(position);
+        }
+
+        console.log("Done");
+        console.log(path);
+        this.addPath(path, "best", grid.SMALL, this.BEST_PATH_COLOR);
+    }
+
+    performPotentialStep(position) {
+        var x_index, y_index;
+        var x = [position.x+1, position.x, position.x-1];
+        var y = [position.y-1, position.y, position.y+1];
+
+        var best_potential = this.WALL_VALUE;
+        var move = {
+            x: null,
+            y: null
+        };
+
+        for (x_index = 0; x_index < x.length; x_index++) {
+            for (y_index = 0; y_index < y.length; y_index++) {
+                // Exclude the point itself
+                if (position.x != x[x_index] && position.y == y[y_index]) {
+                    if (x[x_index] > 0 && x[x_index] < this.size.x && y[y_index] > 0 && y[y_index] < this.size.y) {
+                        
+                        if (this.potential_map[x[x_index]][y[y_index]] < best_potential) {
+                            best_potential = this.potential_map[x[x_index]][y[y_index]];
+                            move.x = x[x_index];
+                            move.y = y[y_index];
+                        }
+                    }
+                }
+            }
+        }
+
+        return move;
+    }
+
+    calculatePotentialStep() {
+        var i, j;
+        for (i = 0; i < this.size.x; i++) {
+            for (j = 0; j < this.size.y; j++) {
+                this.calculatePointPotentialStep(i, j);
+            }
+        }
+    }
+
+    calculatePointPotentialStep(i, j) {
+        if (this.wall_map[i][j] == 1) {
+            this.potential_map_step[i][j] = this.WALL_VALUE;
+            return;
+        }
+
+        if (this.objects['end'].x == i && this.objects['end'].y == j) {
+            this.potential_map_step[i][j] = this.DEST_VALUE;
+            return;
+        }
+
+        var count = 0;
+        var sum = 0;
+        var x_index, y_index;
+        var x = [i+1, i, i-1];
+        var y = [j-1, j, j+1];
+        for (x_index = 0; x_index < x.length; x_index++) {
+            for (y_index = 0; y_index < y.length; y_index++) {
+                // Exclude the point value, only its neighbours
+                if (i != x[x_index] && j == y[y_index]) {
+                    if (x[x_index] > 0 && x[x_index] < this.size.x && y[y_index] > 0 && y[y_index] < this.size.y) {
+                        count++;
+                        sum += this.potential_map[x[x_index]][y[y_index]];
+                    }
+                }
+            }
+        }
+        
+        this.potential_map_step[i][j] = sum/count;
+    }
+
+    checkIfStationary(threshold) {
+        var i, j;
+        for (i = 0; i < this.size.x; i++) {
+            for (j = 0; j < this.size.y; j++) {
+                if (Math.abs(this.potential_map[i][j] - this.potential_map_step[i][j]) > threshold) {
+                    console.log("Threshold not verified");
+                    return false;
+                }
+            }
+        }
+        console.log("Stationary");
+        return true;
+    }
 
 
 
