@@ -850,61 +850,52 @@ class Grid {
 
         var i, j;
         var single_paths = [];
+        // Also create a dictionary using its name
+        var sp_dict = {};
 
         // For each pair of points calculate the shortest path
         for (i = 0; i < point_names.length; i++) {
             for (j = i + 1; j < point_names.length; j++) {
 
-                var p = this.findDummyPath(grid.objects[point_names[i]], grid.objects[point_names[j]]);
+                var p = this.findDummyPathIfFree(grid.objects[point_names[i]], grid.objects[point_names[j]]);
+                
+                // Dummy path was through a wall; ignore it
+                if (p == null) {
+                    continue;
+                }
 
                 // Start & End are the names of the vertices but the path can actually be used in both directions
-                single_paths.push({
+                var sp = {
                     name: 'singlepath-' + point_names[i] + '-' + point_names[j],
                     path: p,
                     start: point_names[i],
                     end: point_names[j]
-                });
+                }
+
+                single_paths.push(sp);
+                this.addPath(sp.path, sp.name);
+                sp_dict[sp.name] = sp;
             }
         }
-
-        var free_single_paths = [];
-        // Also create a dictionary using its name
-        var fsp_dict = {};
-
-        // For each single_path check if it goes through obstacles
-        single_paths.forEach(sp => {
-            var ok = true;
-            sp.path.forEach(step => {
-                if (this.cellIsWall(step.x, step.y)) {
-                    ok = false;
-                    return;
-                }
-            })
-            // If path is ok adds it to free_single_path
-            if (ok) {
-                free_single_paths.push(sp);
-                this.addPath(sp.path, sp.name);
-                fsp_dict[sp.name] = sp;
-            }
-        })
 
         // Now translate single paths to a graph form
         // Each single path is an edge
         var map = {}
 
-        free_single_paths.forEach(fsp => {
+        single_paths.forEach(sp => {
 
             // First time, initialize node in graph
-            if (map[fsp.start] == null) {
-                map[fsp.start] = {}
+            if (map[sp.start] == null) {
+                map[sp.start] = {}
             }
-            if (map[fsp.end] == null) {
-                map[fsp.end] = {}
+            if (map[sp.end] == null) {
+                map[sp.end] = {}
             }
 
             // Add bidirectional edge, weighted by the lenght of the path
-            map[fsp.start][fsp.end] = this.pathCost(fsp.path); //fsp.path.length;
-            map[fsp.end][fsp.start] = this.pathCost(fsp.path); //fsp.path.length;
+            var cost = this.pathCost(sp.path);
+            map[sp.start][sp.end] = cost;
+            map[sp.end][sp.start] = cost;
         })
 
         // Shortest is a list of obstacle_vertex names
@@ -918,7 +909,7 @@ class Grid {
             return;
         }
 
-        // In fsp_dict the singlepath name is used as key
+        // In sp_dict the singlepath name is used as key
         var i;
         var shortest_path_point_list = []
 
@@ -935,10 +926,10 @@ class Grid {
             var sp_name_v1 = 'singlepath-' + shortest[i - 1] + '-' + shortest[i];
             var sp_name_v2 = 'singlepath-' + shortest[i] + '-' + shortest[i - 1];
             var point_list;
-            if (fsp_dict[sp_name_v1])
-                point_list = fsp_dict[sp_name_v1].path;
+            if (sp_dict[sp_name_v1])
+                point_list = sp_dict[sp_name_v1].path;
             else
-                point_list = fsp_dict[sp_name_v2].path.reverse();
+                point_list = sp_dict[sp_name_v2].path.reverse();
 
             point_list.slice(1).forEach(point => {
                 shortest_path_point_list.push(point);
@@ -948,6 +939,44 @@ class Grid {
 
         console.log(shortest_path_point_list);
         this.addPath(shortest_path_point_list, "best", grid.SMALL, this.BEST_PATH_COLOR);
+    }
+
+    findDummyPathIfFree(start, end) {
+        var pointList = [];
+        pointList.push({
+            x: start.x,
+            y: start.y
+        })
+        var last = {
+            x: start.x,
+            y: start.y
+        };
+        var x, y;
+        while (last.x != end.x || last.y != end.y) {
+            if (last.x < end.x)
+                x = last.x + 1
+            else if (last.x == end.x)
+                x = last.x
+            else x = last.x - 1
+
+            if (last.y < end.y)
+                y = last.y + 1
+            else if (last.y == end.y)
+                y = last.y
+            else y = last.y - 1
+
+            // Check if not a wall cell
+            if (this.wall_map[x][y] == 1)
+                return null;
+
+            pointList.push({
+                x: x,
+                y: y
+            })
+            last.x = x;
+            last.y = y;
+        }
+        return pointList
     }
 
     addAllObstaclesVertex() {
