@@ -1275,23 +1275,29 @@ class Grid {
                     }
                 }
                 var toDisc = this.findDummyPath(dummyPath[i], min);
-                console.log("toDisc");
-                console.log(toDisc)
-                path = path.concat(toDisc);
-                path.pop();
-                //now boundary following 
-                //heuristic to understand in which direction is better to turn around the obstacle
-                var dir = "anti";
-                if (Math.abs(this.objects["end"].x - this.objects["start"].x) > Math.abs(this.objects["end"].y - this.objects["start"].y)) { // i'm moving horizontally
-                    console.log("orizzontale")
-                    if ((toDisc[0].x < toDisc[1].x && toDisc[0].y > toDisc[1].y) || (toDisc[0].x > toDisc[1].x && toDisc[0].y < toDisc[1].y))
-                        dir = "or";
-                } else { // vertically
-                    if ((toDisc[0].x > toDisc[1].x && toDisc[0].y > toDisc[1].y) || (toDisc[0].x < toDisc[1].x && toDisc[0].y < toDisc[1].y))
-                        dir = "or";
+                if (toDisc.length >1){
+                    console.log("toDisc");
+                    console.log(toDisc)
+                    path = path.concat(toDisc);
+                    path.pop();
+                    //now boundary following 
+                    //heuristic to understand in which direction is better to turn around the obstacle
+                    var dir = "anti";
+                    if (Math.abs(this.objects["end"].x - this.objects["start"].x) > Math.abs(this.objects["end"].y - this.objects["start"].y)) { // i'm moving horizontally
+                        console.log("orizzontale")
+                        if ((toDisc[0].x < toDisc[1].x && toDisc[0].y > toDisc[1].y) || (toDisc[0].x > toDisc[1].x && toDisc[0].y < toDisc[1].y))
+                            dir = "or";
+                    } else { // vertically
+                        if ((toDisc[0].x > toDisc[1].x && toDisc[0].y > toDisc[1].y) || (toDisc[0].x < toDisc[1].x && toDisc[0].y < toDisc[1].y))
+                            dir = "or";
+                    }
+                    console.log(dir)
+                    this.boundaryFollow(toDisc[toDisc.length - 2], min, this.objects["end"], dir, path);
                 }
-                console.log(dir)
-                this.boundaryFollow(toDisc[toDisc.length - 2], min, this.objects["end"], dir, path);
+                else {
+                    path.push(dummyPath[i]);
+                    this.boundaryFollow(dummyPath[i], dummyPath[i+1], this.objects["end"], "anti", path);
+                }
                 dummyPath = this.findDummyPath(path[path.length - 1], this.objects["end"]);
                 i = 0;
             }
@@ -1303,6 +1309,8 @@ class Grid {
         var newStep = this.followObs(last, obstacle, dir);
         if (!this.cellIsWall(newStep.x, newStep.y)) {
             path.push(newStep);
+            if (newStep.x == this.objects["end"].x && newStep.y == this.objects["end"].y)
+                return path;
             var dummy = this.findDummyPath(newStep, end);
             var range = this.rangeArea(newStep, 1);
             var free = true;
