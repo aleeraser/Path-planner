@@ -4,6 +4,7 @@ class Grid {
         this.CIRCLE = 'TYPE_CIRCLE';
         this.RECT = 'TYPE_RECT';
         this.LINE = 'TYPE_LINE';
+        this.TEXT = 'TYPE_TEXT';
 
         this.UP = 'DIR_UP';
         this.DOWN = 'DIR_DOWN';
@@ -255,6 +256,10 @@ class Grid {
                     this.drawLine(obj);
                     break;
 
+                case this.TEXT:
+                    this.drawText(obj);
+                    break;
+
                 default:
                     console.error("Uknown object type '" + obj.type + "'.");
             }
@@ -330,6 +335,25 @@ class Grid {
 
     }
 
+    drawText(obj) {
+        var cell = this.grid_matrix[obj.x][obj.y];
+
+        var size = {
+            x: this.cell_width * obj.size,
+            y: this.cell_height * obj.size
+        }
+
+        var pos = {
+            x: cell.x + (this.cell_width * 0.12),
+            y: cell.y + (this.cell_height * 0.85)
+        }
+
+        this.context.fillStyle = obj.color;
+        //this.context.textAlign = "center";
+        this.context.font = "8px Arial";
+        this.context.fillText(obj.text, pos.x, pos.y);
+    }
+
     updateGraphics() {
         this.clearCanvas();
         this.drawBackground();
@@ -339,7 +363,7 @@ class Grid {
 
 
     // OBJECTS CREATION/DESTRUCTION UTILS
-    addObj(name, size, cell_x, cell_y, color, type, pointList) {
+    addObj(name, size, cell_x, cell_y, color, type, pointList, text) {
         if (this.objects == null) {
             console.error("Grid has to be generated yet");
             return;
@@ -372,7 +396,8 @@ class Grid {
             y: cell_y,
             type: type,
             color: color,
-            pointList: pointList
+            pointList: pointList,
+            text: text
         }
 
         this.objects[name] = obj;
@@ -396,7 +421,7 @@ class Grid {
 
     // do not use this for adding walls, use addWall
     addRect(name, size, cell_x, cell_y, color) {
-        this.addObj(name, size, cell_x, cell_y, color, this.RECT, null);
+        this.addObj(name, size, cell_x, cell_y, color, this.RECT, null, null);
     }
 
     addWall(cell_x, cell_y) {
@@ -447,12 +472,16 @@ class Grid {
     }
 
     addCircle(name, size, cell_x, cell_y, color) {
-        this.addObj(name, size, cell_x, cell_y, color, this.CIRCLE, null);
+        this.addObj(name, size, cell_x, cell_y, color, this.CIRCLE, null, null);
     }
 
     // do not use this for adding path, use addPath
     addLine(name, size, color, pointList) {
-        this.addObj(name, size, null, null, color, this.LINE, pointList);
+        this.addObj(name, size, null, null, color, this.LINE, pointList, null);
+    }
+
+    addText(name, size, cell_x, cell_y, color, text) {
+        this.addObj(name, size, cell_x, cell_y, color, this.TEXT, null, text);
     }
 
     addPath(pointList, name, gridSize = grid.SMALLER, color = this.PATH_COLOR) {
@@ -682,6 +711,9 @@ class Grid {
                 if (obj.type == this.LINE || (obj.type == this.CIRCLE && obj.name != 'start' && obj.name != "end")) {
                     delete this.objects[obj.name];
                 }
+
+                // Remove text labels (potential field)
+                this.removeAllText();
             }
 
             var pointList;
@@ -1051,25 +1083,66 @@ class Grid {
 
     // Potential Fields methods
     potentialField() {
-        
-        var STATIONARY_THRESHOLD = 5;
-        this.DEST_VALUE = 0;
-        this.WALL_VALUE = 1000;
-        this.EMPTY_VALUE = 900;
+
+        var SHOW_LABELS = false;
+        this.removeAllText();
 
         var goal = this.objects['end'];
 
-        // Potential matrix
-        this.potential_map = [];
+        // Obstacles repulsive map
+        var SCALING_FACTOR = 30;
+        var DISTANCE_OF_INFLUENCE = 1;
+        this.repulsive_map = [];
         for (var i = 0; i < this.size.x; i++) {
             var l = []
             for (var j = 0; j < this.size.y; j++) {
-                l.push(Math.pow(i - goal.x, 2) + Math.pow(j - goal.y, 2));
+                l.push(0);
+            }
+            this.repulsive_map.push(l);
+        }
+
+        // Range of influence
+        var influence = [];
+        for (var i = -DISTANCE_OF_INFLUENCE; i <= DISTANCE_OF_INFLUENCE; i++) {
+            influence.push(i);
+        }
+
+        for (var i = 0; i < this.size.x; i++) {
+            for (var j = 0; j < this.size.y; j++) {
+                if (this.wall_map[i][j] == 1) {
+                    this.repulsive_map[i][j] = SCALING_FACTOR;
+                    influence.forEach(x => {
+                        influence.forEach(y => {
+                            var repulsion = SCALING_FACTOR / (Math.abs(x) + Math.abs(y));
+                            if (this.repulsive_map[i+x][j+y] < repulsion) {
+                                this.repulsive_map[i+x][j+y] = repulsion;
+                            }
+                        })
+                    })
+                }
+            }
+        }
+        console.log("Repulsive map:");
+        console.log(this.repulsive_map);
+
+
+        // Potential matrix
+        this.potential_map = [];
+        var pf = null;
+        for (var i = 0; i < this.size.x; i++) {
+            var l = []
+            for (var j = 0; j < this.size.y; j++) {
+                pf = Math.pow(i - goal.x, 2) + Math.pow(j - goal.y, 2) + this.repulsive_map[i][j];
+                l.push(pf);
+
+                if (SHOW_LABELS)
+                    this.addText('pf_' + i + '_' + j, grid.SMALL, i, j, 'white', pf);
             }
             this.potential_map.push(l);
         }
         console.log("Potential map:");
         console.log(this.potential_map);
+
 
         // Follow potential from start position
         var position = {
@@ -1096,6 +1169,14 @@ class Grid {
         console.log("Done");
         console.log(path);
         this.addPath(path, "best", grid.SMALL, this.BEST_PATH_COLOR);
+    }
+
+    removeAllText() {
+        for (var key in this.objects) {
+            if (this.objects[key].type == this.TEXT) {
+                this.removeObj(key);
+            }
+        }
     }
 
     performPotentialStep(position) {
