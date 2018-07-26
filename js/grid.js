@@ -1157,8 +1157,10 @@ class Grid {
                     influence.forEach(x => {
                         influence.forEach(y => {
                             var repulsion = SCALING_FACTOR / (Math.abs(x) + Math.abs(y));
-                            if (this.repulsive_map[i+x][j+y] < repulsion) {
-                                this.repulsive_map[i+x][j+y] = repulsion;
+                            if (i+x > 0 && i+x < this.size.x && j+y > 0 && j+y < this.size.y) {
+                                if (this.repulsive_map[i+x][j+y] < repulsion) {
+                                    this.repulsive_map[i+x][j+y] = repulsion;
+                                }
                             }
                         })
                     })
