@@ -721,17 +721,20 @@ class Grid {
 
             switch (this.algorithm) {
                 case "visibility":
-                    this.visibilityGraph();
+                    pointList = this.visibilityGraph();
                     break;
                 case "probabilistic":
-                    this.visibilityGraph(true);
+                    pointList = this.visibilityGraph(true);
                     break;
                 case "decomposition":
                     pointList = this.findPath();
                     break;
                 case "potential":
                     pointList = this.potentialField();
-                    break;    
+                    break;
+                case "potential-memory":
+                    pointList = this.potentialField(true);
+                    break;     
                 case "bug1":
                     pointList = this.bug1(this.findDummyPath(this.objects['start'], this.objects['end']));
                     break;
@@ -748,7 +751,7 @@ class Grid {
             }
 
             if (pointList) {
-                this.addPath(pointList, "path");
+                this.addPath(pointList, "path", grid.SMALL, this.BEST_PATH_COLOR);
                 this.setObjectPosition("start", pointList[0].x, pointList[0].y);
             }
         }
@@ -1002,8 +1005,9 @@ class Grid {
             console.log(point_list);
         }
 
-        console.log(shortest_path_point_list);
-        this.addPath(shortest_path_point_list, "best", grid.SMALL, this.BEST_PATH_COLOR);
+        //console.log(shortest_path_point_list);
+        //this.addPath(shortest_path_point_list, "best", grid.SMALL, this.BEST_PATH_COLOR);
+        return shortest_path_point_list;
     }
 
     findDummyPathIfFree(start, end) {
@@ -1033,6 +1037,12 @@ class Grid {
             // Check if not a wall cell
             if (this.wall_map[x][y] == 1)
                 return null;
+
+            // Avoid diagonal between obstacles
+            if (x == last.x+1 && y == last.y+1 && this.cellIsWall(last.x+1, last.y) && this.cellIsWall(last.x, last.y+1)) return null;
+            if (x == last.x-1 && y == last.y-1 && this.cellIsWall(last.x-1, last.y) && this.cellIsWall(last.x, last.y-1)) return null;
+            if (x == last.x+1 && y == last.y-1 && this.cellIsWall(last.x+1, last.y) && this.cellIsWall(last.x, last.y-1)) return null;
+            if (x == last.x-1 && y == last.y+1 && this.cellIsWall(last.x-1, last.y) && this.cellIsWall(last.x, last.y+1)) return null;
 
             pointList.push({
                 x: x,
@@ -1115,7 +1125,7 @@ class Grid {
 
 
     // Potential Fields methods
-    potentialField() {
+    potentialField(memory = false) {
 
         var SHOW_LABELS = false;
         this.removeAllText();
@@ -1186,13 +1196,13 @@ class Grid {
         var path = [position];
 
         while (position.x != goal.x || position.y != goal.y) {
-            position = this.performPotentialStep(position);
+            position = this.performPotentialStep(position, path, memory);
             console.log(position);
             if (position.x == null || position.y == null) {
                 alert('Local minimum');
                 break;
             }
-            if (this.isInPath(path, position) > -1) {
+            if (this.isInPath(path, position) > -1 && !memory) {
                 alert('Loop');
                 break;
             }
@@ -1200,8 +1210,9 @@ class Grid {
         }
 
         console.log("Done");
-        console.log(path);
-        this.addPath(path, "best", grid.SMALL, this.BEST_PATH_COLOR);
+        //console.log(path);
+        //this.addPath(path, "best", grid.SMALL, this.BEST_PATH_COLOR);
+        return path;
     }
 
     removeAllText() {
@@ -1212,13 +1223,16 @@ class Grid {
         }
     }
 
-    performPotentialStep(position) {
+    performPotentialStep(position, path, memory) {
         //alert('Potential step: ' + position.x + " " + position.y);
         var x_index, y_index;
         var x = [position.x+1, position.x, position.x-1];
         var y = [position.y-1, position.y, position.y+1];
 
-        var best_potential = this.potential_map[position.x][position.y];
+        var best_potential;
+        if (!memory) best_potential = this.potential_map[position.x][position.y];
+        else best_potential = Number.POSITIVE_INFINITY;
+
         var move = {
             x: null,
             y: null
@@ -1231,10 +1245,24 @@ class Grid {
                     if (x[x_index] > 0 && x[x_index] < this.size.x && y[y_index] > 0 && y[y_index] < this.size.y) {
                         
                         if (this.wall_map[x[x_index]][y[y_index]] != 1) {
-                            if (this.potential_map[x[x_index]][y[y_index]] < best_potential) {
+                            if (this.potential_map[x[x_index]][y[y_index]] < best_potential && this.isInPath(path, {x: x[x_index], y: y[y_index]}) == -1) {
+                                //best_potential = this.potential_map[x[x_index]][y[y_index]];
+                                //move.x = x[x_index];
+                                //move.y = y[y_index];
+
+                                var aux = {};
+                                aux.x = x[x_index];
+                                aux.y = y[y_index];
+
+                                // Avoid diagonal between obstacles
+                                if (aux.x == position.x+1 && aux.y == position.y+1 && this.cellIsWall(position.x+1, position.y) && this.cellIsWall(position.x, position.y+1)) continue;
+                                if (aux.x == position.x-1 && aux.y == position.y-1 && this.cellIsWall(position.x-1, position.y) && this.cellIsWall(position.x, position.y-1)) continue;
+                                if (aux.x == position.x+1 && aux.y == position.y-1 && this.cellIsWall(position.x+1, position.y) && this.cellIsWall(position.x, position.y-1)) continue;
+                                if (aux.x == position.x-1 && aux.y == position.y+1 && this.cellIsWall(position.x-1, position.y) && this.cellIsWall(position.x, position.y+1)) continue;
+
                                 best_potential = this.potential_map[x[x_index]][y[y_index]];
-                                move.x = x[x_index];
-                                move.y = y[y_index];
+                                move.x = aux.x;
+                                move.y = aux.y;
                             }
                         }
                     }
