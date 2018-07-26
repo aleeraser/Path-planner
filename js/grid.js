@@ -492,14 +492,15 @@ class Grid {
         this.removeObj(name);
     }
 
-    clearPaths() {
+    clearPaths(drawPath = false) {
         for (var key in this.objects) {
             var obj = this.objects[key];
             if (obj.type == this.LINE) {
                 this.removePath(obj.name);
             }
         }
-        this.drawPath = false;
+        this.drawPath = drawPath;
+        this.updateGraphics();
     }
 
     moveObject(name, direction) {
@@ -790,11 +791,42 @@ class Grid {
                                         // var target = "c_" + k + "_" + l;
                                         var target = k + "_" + l;
 
-                                        // console.log("\t\t\tAdding cell (" + k + ", " + l + ") to adjacency graph.");
+                                        // old method to add cell to adjacency graph, allows a diagonal
+                                        // movement between two diagonally adjacent walls
+                                        // adjacency_matrix[source][target] = k == i || l == j ? 1 : 2;
 
-                                        // add cell to adjacency graph
-                                        adjacency_matrix[source][target] = k == i || l == j ? 1 : 2;
-
+                                        
+                                        if (k == i || l == j) { // non-diagonal cells
+                                            // console.log("\t\t\tAdding cell (" + k + ", " + l + ") to adjacency graph.");
+                                            adjacency_matrix[source][target] = 1;
+                                        } else { // diagonal cells
+                                            // exclude diagonal movements if passing between two walls
+                                            if (k < i) {
+                                                if (l < j) {
+                                                    if (!(this.cellIsWall(k + 1, l) && this.cellIsWall(k, l + 1))) {
+                                                        // console.log("\t\t\tAdding cell (" + k + ", " + l + ") to adjacency graph.");
+                                                        adjacency_matrix[source][target] = 2;
+                                                    }
+                                                } else {
+                                                    if (!(this.cellIsWall(k + 1, l) && this.cellIsWall(k, l - 1))) {
+                                                        // console.log("\t\t\tAdding cell (" + k + ", " + l + ") to adjacency graph.");
+                                                        adjacency_matrix[source][target] = 2;
+                                                    }
+                                                }
+                                            } else {
+                                                if (l < j) {
+                                                    if (!(this.cellIsWall(k - 1, l) && this.cellIsWall(k, l + 1))) {
+                                                        // console.log("\t\t\tAdding cell (" + k + ", " + l + ") to adjacency graph.");
+                                                        adjacency_matrix[source][target] = 2;
+                                                    }
+                                                } else {
+                                                    if (!(this.cellIsWall(k - 1, l) && this.cellIsWall(k, l - 1))) {
+                                                        // console.log("\t\t\tAdding cell (" + k + ", " + l + ") to adjacency graph.");
+                                                        adjacency_matrix[source][target] = 2;
+                                                    }
+                                                }
+                                            }
+                                        }
                                     } else {
                                         // console.log("\t\t\tCell (" + k + ", " + l + ") has a wall.");
                                     }
@@ -834,6 +866,7 @@ class Grid {
         // Null means no path available
         if (shortest == null) {
             console.error("No path found.");
+            this.clearPaths(true);
             return;
         }
 
