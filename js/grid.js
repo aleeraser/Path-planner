@@ -4,6 +4,7 @@ class Grid {
         this.CIRCLE = 'TYPE_CIRCLE';
         this.RECT = 'TYPE_RECT';
         this.LINE = 'TYPE_LINE';
+        this.TEXT = 'TYPE_TEXT';
 
         this.UP = 'DIR_UP';
         this.DOWN = 'DIR_DOWN';
@@ -255,6 +256,10 @@ class Grid {
                     this.drawLine(obj);
                     break;
 
+                case this.TEXT:
+                    this.drawText(obj);
+                    break;
+
                 default:
                     console.error("Uknown object type '" + obj.type + "'.");
             }
@@ -330,6 +335,25 @@ class Grid {
 
     }
 
+    drawText(obj) {
+        var cell = this.grid_matrix[obj.x][obj.y];
+
+        var size = {
+            x: this.cell_width * obj.size,
+            y: this.cell_height * obj.size
+        }
+
+        var pos = {
+            x: cell.x + (this.cell_width * 0.12),
+            y: cell.y + (this.cell_height * 0.85)
+        }
+
+        this.context.fillStyle = obj.color;
+        //this.context.textAlign = "center";
+        this.context.font = "8px Arial";
+        this.context.fillText(obj.text, pos.x, pos.y);
+    }
+
     updateGraphics() {
         this.clearCanvas();
         this.drawBackground();
@@ -339,7 +363,7 @@ class Grid {
 
 
     // OBJECTS CREATION/DESTRUCTION UTILS
-    addObj(name, size, cell_x, cell_y, color, type, pointList) {
+    addObj(name, size, cell_x, cell_y, color, type, pointList, text) {
         if (this.objects == null) {
             console.error("Grid has to be generated yet");
             return;
@@ -372,7 +396,8 @@ class Grid {
             y: cell_y,
             type: type,
             color: color,
-            pointList: pointList
+            pointList: pointList,
+            text: text
         }
 
         this.objects[name] = obj;
@@ -396,7 +421,7 @@ class Grid {
 
     // do not use this for adding walls, use addWall
     addRect(name, size, cell_x, cell_y, color) {
-        this.addObj(name, size, cell_x, cell_y, color, this.RECT, null);
+        this.addObj(name, size, cell_x, cell_y, color, this.RECT, null, null);
     }
 
     addWall(cell_x, cell_y) {
@@ -447,12 +472,16 @@ class Grid {
     }
 
     addCircle(name, size, cell_x, cell_y, color) {
-        this.addObj(name, size, cell_x, cell_y, color, this.CIRCLE, null);
+        this.addObj(name, size, cell_x, cell_y, color, this.CIRCLE, null, null);
     }
 
     // do not use this for adding path, use addPath
     addLine(name, size, color, pointList) {
-        this.addObj(name, size, null, null, color, this.LINE, pointList);
+        this.addObj(name, size, null, null, color, this.LINE, pointList, null);
+    }
+
+    addText(name, size, cell_x, cell_y, color, text) {
+        this.addObj(name, size, cell_x, cell_y, color, this.TEXT, null, text);
     }
 
     addPath(pointList, name, gridSize = grid.SMALLER, color = this.PATH_COLOR) {
@@ -463,14 +492,15 @@ class Grid {
         this.removeObj(name);
     }
 
-    clearPaths() {
+    clearPaths(drawPath = false) {
         for (var key in this.objects) {
             var obj = this.objects[key];
             if (obj.type == this.LINE) {
                 this.removePath(obj.name);
             }
         }
-        this.drawPath = false;
+        this.drawPath = drawPath;
+        this.updateGraphics();
     }
 
     moveObject(name, direction) {
@@ -682,23 +712,29 @@ class Grid {
                 if (obj.type == this.LINE || (obj.type == this.CIRCLE && obj.name != 'start' && obj.name != "end")) {
                     delete this.objects[obj.name];
                 }
+
+                // Remove text labels (potential field)
+                this.removeAllText();
             }
 
             var pointList;
 
             switch (this.algorithm) {
                 case "visibility":
-                    this.visibilityGraph();
+                    pointList = this.visibilityGraph();
                     break;
                 case "probabilistic":
-                    this.visibilityGraph(true);
+                    pointList = this.visibilityGraph(true);
                     break;
                 case "decomposition":
                     pointList = this.findPath();
                     break;
                 case "potential":
                     pointList = this.potentialField();
-                    break;    
+                    break;
+                case "potential-memory":
+                    pointList = this.potentialField(true);
+                    break;     
                 case "bug1":
                     pointList = this.bug1(this.findDummyPath(this.objects['start'], this.objects['end']));
                     break;
@@ -715,7 +751,7 @@ class Grid {
             }
 
             if (pointList) {
-                this.addPath(pointList, "path");
+                this.addPath(pointList, "path", grid.SMALL, this.BEST_PATH_COLOR);
                 this.setObjectPosition("start", pointList[0].x, pointList[0].y);
             }
         }
@@ -758,11 +794,42 @@ class Grid {
                                         // var target = "c_" + k + "_" + l;
                                         var target = k + "_" + l;
 
-                                        // console.log("\t\t\tAdding cell (" + k + ", " + l + ") to adjacency graph.");
+                                        // old method to add cell to adjacency graph, allows a diagonal
+                                        // movement between two diagonally adjacent walls
+                                        // adjacency_matrix[source][target] = k == i || l == j ? 1 : 2;
 
-                                        // add cell to adjacency graph
-                                        adjacency_matrix[source][target] = k == i || l == j ? 1 : 2;
-
+                                        
+                                        if (k == i || l == j) { // non-diagonal cells
+                                            // console.log("\t\t\tAdding cell (" + k + ", " + l + ") to adjacency graph.");
+                                            adjacency_matrix[source][target] = 1;
+                                        } else { // diagonal cells
+                                            // exclude diagonal movements if passing between two walls
+                                            if (k < i) {
+                                                if (l < j) {
+                                                    if (!(this.cellIsWall(k + 1, l) && this.cellIsWall(k, l + 1))) {
+                                                        // console.log("\t\t\tAdding cell (" + k + ", " + l + ") to adjacency graph.");
+                                                        adjacency_matrix[source][target] = 2;
+                                                    }
+                                                } else {
+                                                    if (!(this.cellIsWall(k + 1, l) && this.cellIsWall(k, l - 1))) {
+                                                        // console.log("\t\t\tAdding cell (" + k + ", " + l + ") to adjacency graph.");
+                                                        adjacency_matrix[source][target] = 2;
+                                                    }
+                                                }
+                                            } else {
+                                                if (l < j) {
+                                                    if (!(this.cellIsWall(k - 1, l) && this.cellIsWall(k, l + 1))) {
+                                                        // console.log("\t\t\tAdding cell (" + k + ", " + l + ") to adjacency graph.");
+                                                        adjacency_matrix[source][target] = 2;
+                                                    }
+                                                } else {
+                                                    if (!(this.cellIsWall(k - 1, l) && this.cellIsWall(k, l - 1))) {
+                                                        // console.log("\t\t\tAdding cell (" + k + ", " + l + ") to adjacency graph.");
+                                                        adjacency_matrix[source][target] = 2;
+                                                    }
+                                                }
+                                            }
+                                        }
                                     } else {
                                         // console.log("\t\t\tCell (" + k + ", " + l + ") has a wall.");
                                     }
@@ -802,6 +869,7 @@ class Grid {
         // Null means no path available
         if (shortest == null) {
             console.error("No path found.");
+            this.clearPaths(true);
             return;
         }
 
@@ -822,7 +890,7 @@ class Grid {
 
     // Visibility Graph Methods
     visibilityGraph(probabilistic = false) {
-        console.log("Visibility Graph Method");
+        // console.log("Visibility Graph Method");
 
         // Variables setup
         this.obstacle_vertex_names = [];
@@ -850,67 +918,58 @@ class Grid {
 
         var i, j;
         var single_paths = [];
+        // Also create a dictionary using its name
+        var sp_dict = {};
 
         // For each pair of points calculate the shortest path
         for (i = 0; i < point_names.length; i++) {
             for (j = i + 1; j < point_names.length; j++) {
 
-                var p = this.findDummyPath(grid.objects[point_names[i]], grid.objects[point_names[j]]);
+                var p = this.findDummyPathIfFree(grid.objects[point_names[i]], grid.objects[point_names[j]]);
+                
+                // Dummy path was through a wall; ignore it
+                if (p == null) {
+                    continue;
+                }
 
                 // Start & End are the names of the vertices but the path can actually be used in both directions
-                single_paths.push({
+                var sp = {
                     name: 'singlepath-' + point_names[i] + '-' + point_names[j],
                     path: p,
                     start: point_names[i],
                     end: point_names[j]
-                });
+                }
+
+                single_paths.push(sp);
+                this.addPath(sp.path, sp.name);
+                sp_dict[sp.name] = sp;
             }
         }
-
-        var free_single_paths = [];
-        // Also create a dictionary using its name
-        var fsp_dict = {};
-
-        // For each single_path check if it goes through obstacles
-        single_paths.forEach(sp => {
-            var ok = true;
-            sp.path.forEach(step => {
-                if (this.cellIsWall(step.x, step.y)) {
-                    ok = false;
-                    return;
-                }
-            })
-            // If path is ok adds it to free_single_path
-            if (ok) {
-                free_single_paths.push(sp);
-                this.addPath(sp.path, sp.name);
-                fsp_dict[sp.name] = sp;
-            }
-        })
 
         // Now translate single paths to a graph form
         // Each single path is an edge
         var map = {}
 
-        free_single_paths.forEach(fsp => {
+        single_paths.forEach(sp => {
 
             // First time, initialize node in graph
-            if (map[fsp.start] == null) {
-                map[fsp.start] = {}
+            if (map[sp.start] == null) {
+                map[sp.start] = {}
             }
-            if (map[fsp.end] == null) {
-                map[fsp.end] = {}
+            if (map[sp.end] == null) {
+                map[sp.end] = {}
             }
 
             // Add bidirectional edge, weighted by the lenght of the path
-            map[fsp.start][fsp.end] = this.pathCost(fsp.path); //fsp.path.length;
-            map[fsp.end][fsp.start] = this.pathCost(fsp.path); //fsp.path.length;
+            var cost = this.pathCost(sp.path);
+            map[sp.start][sp.end] = cost;
+            map[sp.end][sp.start] = cost;
         })
 
         // Shortest is a list of obstacle_vertex names
         var graph = new Graph(map);
         var shortest = graph.findShortestPath("start", "end");
-        console.log(shortest);
+        // console.log(shortest);
 
         // Null means no path available
         if (shortest == null) {
@@ -918,7 +977,7 @@ class Grid {
             return;
         }
 
-        // In fsp_dict the singlepath name is used as key
+        // In sp_dict the singlepath name is used as key
         var i;
         var shortest_path_point_list = []
 
@@ -935,19 +994,64 @@ class Grid {
             var sp_name_v1 = 'singlepath-' + shortest[i - 1] + '-' + shortest[i];
             var sp_name_v2 = 'singlepath-' + shortest[i] + '-' + shortest[i - 1];
             var point_list;
-            if (fsp_dict[sp_name_v1])
-                point_list = fsp_dict[sp_name_v1].path;
+            if (sp_dict[sp_name_v1])
+                point_list = sp_dict[sp_name_v1].path;
             else
-                point_list = fsp_dict[sp_name_v2].path.reverse();
+                point_list = sp_dict[sp_name_v2].path.reverse();
 
             point_list.slice(1).forEach(point => {
                 shortest_path_point_list.push(point);
             })
-            console.log(point_list);
+            // console.log(point_list);
         }
 
-        console.log(shortest_path_point_list);
-        this.addPath(shortest_path_point_list, "best", grid.SMALL, this.BEST_PATH_COLOR);
+        // console.log(shortest_path_point_list);
+        //this.addPath(shortest_path_point_list, "best", grid.SMALL, this.BEST_PATH_COLOR);
+        return shortest_path_point_list;
+    }
+
+    findDummyPathIfFree(start, end) {
+        var pointList = [];
+        pointList.push({
+            x: start.x,
+            y: start.y
+        })
+        var last = {
+            x: start.x,
+            y: start.y
+        };
+        var x, y;
+        while (last.x != end.x || last.y != end.y) {
+            if (last.x < end.x)
+                x = last.x + 1
+            else if (last.x == end.x)
+                x = last.x
+            else x = last.x - 1
+
+            if (last.y < end.y)
+                y = last.y + 1
+            else if (last.y == end.y)
+                y = last.y
+            else y = last.y - 1
+
+            // Check if not a wall cell
+            if (this.wall_map[x][y] == 1)
+                return null;
+
+            // Avoid diagonal between obstacles
+            if (x == last.x+1 && y == last.y+1 && this.cellIsWall(last.x+1, last.y) && this.cellIsWall(last.x, last.y+1)) return null;
+            if (x == last.x-1 && y == last.y-1 && this.cellIsWall(last.x-1, last.y) && this.cellIsWall(last.x, last.y-1)) return null;
+            if (x == last.x+1 && y == last.y-1 && this.cellIsWall(last.x+1, last.y) && this.cellIsWall(last.x, last.y-1)) return null;
+            if (x == last.x-1 && y == last.y+1 && this.cellIsWall(last.x-1, last.y) && this.cellIsWall(last.x, last.y+1)) return null;
+
+            pointList.push({
+                x: x,
+                y: y
+            })
+            last.x = x;
+            last.y = y;
+        }
+        return pointList
     }
 
     addAllObstaclesVertex() {
@@ -1014,69 +1118,76 @@ class Grid {
 
     logObjectNames() {
         for (var key in this.objects) {
-            console.log(key);
+            // console.log(key);
         }
     }
 
 
 
     // Potential Fields methods
-    potentialField() {
-        
-        var STATIONARY_THRESHOLD = 5;
-        this.DEST_VALUE = 0;
-        this.WALL_VALUE = 1000;
-        this.EMPTY_VALUE = 900;
+    potentialField(memory = false) {
 
-        // Potential matrix, initialized to:
-        //      0 in destination cell
-        //      1 in every wall cell
-        //      0.5 in every other empty cell
-        this.potential_map = [];
+        var SHOW_LABELS = false;
+        this.removeAllText();
+
+        var goal = this.objects['end'];
+
+        // Obstacles repulsive map
+        var SCALING_FACTOR = 30;
+        var DISTANCE_OF_INFLUENCE = 1;
+        this.repulsive_map = [];
         for (var i = 0; i < this.size.x; i++) {
             var l = []
             for (var j = 0; j < this.size.y; j++) {
-                // Wall
+                l.push(0);
+            }
+            this.repulsive_map.push(l);
+        }
+
+        // Range of influence
+        var influence = [];
+        for (var i = -DISTANCE_OF_INFLUENCE; i <= DISTANCE_OF_INFLUENCE; i++) {
+            influence.push(i);
+        }
+
+        for (var i = 0; i < this.size.x; i++) {
+            for (var j = 0; j < this.size.y; j++) {
                 if (this.wall_map[i][j] == 1) {
-                    l.push(this.WALL_VALUE);
+                    this.repulsive_map[i][j] = SCALING_FACTOR;
+                    influence.forEach(x => {
+                        influence.forEach(y => {
+                            var repulsion = SCALING_FACTOR / (Math.abs(x) + Math.abs(y));
+                            if (i+x > 0 && i+x < this.size.x && j+y > 0 && j+y < this.size.y) {
+                                if (this.repulsive_map[i+x][j+y] < repulsion) {
+                                    this.repulsive_map[i+x][j+y] = repulsion;
+                                }
+                            }
+                        })
+                    })
                 }
-                else {
-                    // End
-                    if (this.objects['end'].x == i && this.objects['end'].y == j) {
-                        l.push(this.DEST_VALUE);
-                        console.log("End is in x=" + i + " y=" + j);
-                    }
-                    else {
-                        l.push(this.EMPTY_VALUE);
-                    }
-                }
+            }
+        }
+        // console.log("Repulsive map:");
+        // console.log(this.repulsive_map);
+
+
+        // Potential matrix
+        this.potential_map = [];
+        var pf = null;
+        for (var i = 0; i < this.size.x; i++) {
+            var l = []
+            for (var j = 0; j < this.size.y; j++) {
+                pf = Math.pow(i - goal.x, 2) + Math.pow(j - goal.y, 2) + this.repulsive_map[i][j];
+                l.push(pf);
+
+                if (SHOW_LABELS)
+                    this.addText('pf_' + i + '_' + j, grid.SMALL, i, j, 'white', pf);
             }
             this.potential_map.push(l);
         }
-        console.log("Potential map:");
-        console.log(this.potential_map);
+        // console.log("Potential map:");
+        // console.log(this.potential_map);
 
-
-        // If potential field has been fully evaluated
-        var stationary = false;
-
-        // Next step potential field map
-        this.potential_map_step = new Array(this.size.x);
-        for(var j = 0; j < this.size.x; j++) {
-            this.potential_map_step[j] = new Array(this.size.y);
-        }
-
-        // Starting from the known values, calculate the potential field
-        while (!stationary) {
-            this.calculatePotentialStep();
-            stationary = this.checkIfStationary(STATIONARY_THRESHOLD);
-            this.potential_map = this.potential_map_step;
-            
-            this.potential_map_step = new Array(this.size.x);
-            for(var j = 0; j < this.size.x; j++) {
-                this.potential_map_step[j] = new Array(this.size.y);
-            }
-        }
 
         // Follow potential from start position
         var position = {
@@ -1086,22 +1197,44 @@ class Grid {
 
         var path = [position];
 
-        while (position.x != this.objects['end'].x || position.y != this.objects['end'].y) {
-            position = this.performPotentialStep(position);
+        while (position.x != goal.x || position.y != goal.y) {
+            position = this.performPotentialStep(position, path, memory);
+            // console.log(position);
+            if (position.x == null || position.y == null) {
+                alert('Local minimum');
+                break;
+            }
+            if (this.isInPath(path, position) > -1 && !memory) {
+                alert('Loop');
+                break;
+            }
             path.push(position);
         }
 
-        console.log("Done");
-        console.log(path);
-        this.addPath(path, "best", grid.SMALL, this.BEST_PATH_COLOR);
+        // console.log("Done");
+        //console.log(path);
+        //this.addPath(path, "best", grid.SMALL, this.BEST_PATH_COLOR);
+        return path;
     }
 
-    performPotentialStep(position) {
+    removeAllText() {
+        for (var key in this.objects) {
+            if (this.objects[key].type == this.TEXT) {
+                this.removeObj(key);
+            }
+        }
+    }
+
+    performPotentialStep(position, path, memory) {
+        //alert('Potential step: ' + position.x + " " + position.y);
         var x_index, y_index;
         var x = [position.x+1, position.x, position.x-1];
         var y = [position.y-1, position.y, position.y+1];
 
-        var best_potential = this.WALL_VALUE;
+        var best_potential;
+        if (!memory) best_potential = this.potential_map[position.x][position.y];
+        else best_potential = Number.POSITIVE_INFINITY;
+
         var move = {
             x: null,
             y: null
@@ -1110,13 +1243,29 @@ class Grid {
         for (x_index = 0; x_index < x.length; x_index++) {
             for (y_index = 0; y_index < y.length; y_index++) {
                 // Exclude the point itself
-                if (position.x != x[x_index] && position.y == y[y_index]) {
+                if (position.x != x[x_index] || position.y != y[y_index]) {
                     if (x[x_index] > 0 && x[x_index] < this.size.x && y[y_index] > 0 && y[y_index] < this.size.y) {
                         
-                        if (this.potential_map[x[x_index]][y[y_index]] < best_potential) {
-                            best_potential = this.potential_map[x[x_index]][y[y_index]];
-                            move.x = x[x_index];
-                            move.y = y[y_index];
+                        if (this.wall_map[x[x_index]][y[y_index]] != 1) {
+                            if (this.potential_map[x[x_index]][y[y_index]] < best_potential && this.isInPath(path, {x: x[x_index], y: y[y_index]}) == -1) {
+                                //best_potential = this.potential_map[x[x_index]][y[y_index]];
+                                //move.x = x[x_index];
+                                //move.y = y[y_index];
+
+                                var aux = {};
+                                aux.x = x[x_index];
+                                aux.y = y[y_index];
+
+                                // Avoid diagonal between obstacles
+                                if (aux.x == position.x+1 && aux.y == position.y+1 && this.cellIsWall(position.x+1, position.y) && this.cellIsWall(position.x, position.y+1)) continue;
+                                if (aux.x == position.x-1 && aux.y == position.y-1 && this.cellIsWall(position.x-1, position.y) && this.cellIsWall(position.x, position.y-1)) continue;
+                                if (aux.x == position.x+1 && aux.y == position.y-1 && this.cellIsWall(position.x+1, position.y) && this.cellIsWall(position.x, position.y-1)) continue;
+                                if (aux.x == position.x-1 && aux.y == position.y+1 && this.cellIsWall(position.x-1, position.y) && this.cellIsWall(position.x, position.y+1)) continue;
+
+                                best_potential = this.potential_map[x[x_index]][y[y_index]];
+                                move.x = aux.x;
+                                move.y = aux.y;
+                            }
                         }
                     }
                 }
@@ -1124,60 +1273,6 @@ class Grid {
         }
 
         return move;
-    }
-
-    calculatePotentialStep() {
-        var i, j;
-        for (i = 0; i < this.size.x; i++) {
-            for (j = 0; j < this.size.y; j++) {
-                this.calculatePointPotentialStep(i, j);
-            }
-        }
-    }
-
-    calculatePointPotentialStep(i, j) {
-        if (this.wall_map[i][j] == 1) {
-            this.potential_map_step[i][j] = this.WALL_VALUE;
-            return;
-        }
-
-        if (this.objects['end'].x == i && this.objects['end'].y == j) {
-            this.potential_map_step[i][j] = this.DEST_VALUE;
-            return;
-        }
-
-        var count = 0;
-        var sum = 0;
-        var x_index, y_index;
-        var x = [i+1, i, i-1];
-        var y = [j-1, j, j+1];
-        for (x_index = 0; x_index < x.length; x_index++) {
-            for (y_index = 0; y_index < y.length; y_index++) {
-                // Exclude the point value, only its neighbours
-                if (i != x[x_index] && j == y[y_index]) {
-                    if (x[x_index] > 0 && x[x_index] < this.size.x && y[y_index] > 0 && y[y_index] < this.size.y) {
-                        count++;
-                        sum += this.potential_map[x[x_index]][y[y_index]];
-                    }
-                }
-            }
-        }
-        
-        this.potential_map_step[i][j] = sum/count;
-    }
-
-    checkIfStationary(threshold) {
-        var i, j;
-        for (i = 0; i < this.size.x; i++) {
-            for (j = 0; j < this.size.y; j++) {
-                if (Math.abs(this.potential_map[i][j] - this.potential_map_step[i][j]) > threshold) {
-                    console.log("Threshold not verified");
-                    return false;
-                }
-            }
-        }
-        console.log("Stationary");
-        return true;
     }
 
 
@@ -1230,14 +1325,14 @@ class Grid {
     }
 
     tangentBug(dummyPath) {
-        console.log("tangent bug");
+        // console.log("tangent bug");
 
         var path = [];
         for (var i = 0; i < dummyPath.length; i++) { //try to follow the dummy path
-            console.log(dummyPath[i])
+            // console.log(dummyPath[i])
             var range = this.rangeArea(dummyPath[i], 2);
-            console.log('range');
-            console.log(range);
+            // console.log('range');
+            // console.log(range);
             var free = true;
             var discontinuities = [];
             for (var j = 0; j < range.length; j++) { //check if range area is free
@@ -1248,19 +1343,19 @@ class Grid {
                 }
             }
             if (free) { //if free follow the dummy path
-                console.log(dummyPath[i])
-                console.log("free")
+                // console.log(dummyPath[i])
+                // console.log("free")
                 path.push(dummyPath[i])
             } else {
-                console.log(dummyPath[i])
-                console.log("not free")
+                // console.log(dummyPath[i])
+                // console.log("not free")
                 var min;
                 var minDist = 100;
-                console.log("-------- ")
-                console.log(discontinuities);
+                // console.log("-------- ")
+                // console.log(discontinuities);
                 discontinuities = this.findDiscontinuities(discontinuities);
-                console.log("-------- ")
-                console.log(discontinuities);
+                // console.log("-------- ")
+                // console.log(discontinuities);
                 for (var j = 0; j < discontinuities.length; j++) { //find the nearest discontinuity
                     var toDisc = this.findDummyPath(dummyPath[i], discontinuities[j]);
                     var dist = this.pathCost(this.findDummyPath(discontinuities[j], grid.objects['end'])) + this.pathCost(toDisc) //the distance is given by the sum of the distances between you and the discontinuity and between the discontinuity and the end
@@ -1269,29 +1364,29 @@ class Grid {
                             dist = 100;
                     }
                     if (dist < minDist) {
-                        console.log(discontinuities[j])
+                        // console.log(discontinuities[j])
                         min = discontinuities[j];
                         minDist = dist;
                     }
                 }
                 var toDisc = this.findDummyPath(dummyPath[i], min);
                 if (toDisc.length >1){
-                    console.log("toDisc");
-                    console.log(toDisc)
+                    // console.log("toDisc");
+                    // console.log(toDisc)
                     path = path.concat(toDisc);
                     path.pop();
                     //now boundary following 
                     //heuristic to understand in which direction is better to turn around the obstacle
                     var dir = "anti";
                     if (Math.abs(this.objects["end"].x - this.objects["start"].x) > Math.abs(this.objects["end"].y - this.objects["start"].y)) { // i'm moving horizontally
-                        console.log("orizzontale")
+                        // console.log("orizzontale")
                         if ((toDisc[0].x < toDisc[1].x && toDisc[0].y > toDisc[1].y) || (toDisc[0].x > toDisc[1].x && toDisc[0].y < toDisc[1].y))
                             dir = "or";
                     } else { // vertically
                         if ((toDisc[0].x > toDisc[1].x && toDisc[0].y > toDisc[1].y) || (toDisc[0].x < toDisc[1].x && toDisc[0].y < toDisc[1].y))
                             dir = "or";
                     }
-                    console.log(dir)
+                    // console.log(dir)
                     this.boundaryFollow(toDisc[toDisc.length - 2], min, this.objects["end"], dir, path);
                 }
                 else {
@@ -1320,7 +1415,7 @@ class Grid {
             for (var j = 0; j < range.length; j++) { //check if range area is free
                 if (this.cellIsWall(range[j].x, range[j].y) || ((this.cellIsWall(range[j].x + 1, range[j].y) && this.cellIsWall(range[j].x, range[j].y - 1)) || this.cellIsWall(range[j].x + 1, range[j].y) && this.cellIsWall(range[j].x, range[j].y + 1)) || (this.cellIsWall(range[j].x - 1, range[j].y) && this.cellIsWall(range[j].x, range[j].y - 1)) || (this.cellIsWall(range[j].x - 1, range[j].y) && this.cellIsWall(range[j].x, range[j].y + 1))) {
                     if (this.isInPath(dummy, range[j]) != -1) { //if there are obstacles in range, but the dummy path is free follow the dummy path
-                        console.log("not free in folow")
+                        // console.log("not free in folow")
                         free = false;
                         break;
                     }
@@ -1331,7 +1426,7 @@ class Grid {
             }
             return this.boundaryFollow(newStep, obstacle, end, dir, path);
         } else
-            console.log(newStep)
+            // console.log(newStep)
         return this.boundaryFollow(last, newStep, end, dir, path);
     }
 
@@ -1371,8 +1466,8 @@ class Grid {
             }
         }
         var min = Math.min(...counts);
-        console.log("min " + min);
-        console.log(disc);
+        // console.log("min " + min);
+        // console.log(disc);
         var res = [];
         for (var i = 0; i <= disc.length; i++) {
             if (counts[i] <= min || counts[i] < 2) {
@@ -1427,10 +1522,10 @@ class Grid {
         for (var i = 0; i < dummyPath.length; i++) {
             var step = dummyPath[i];
             if (!this.cellIsWall(step.x, step.y)) {
-                console.log(step)
+                // console.log(step)
                 path.push(step);
             } else {
-                console.log("wall")
+                // console.log("wall")
                 path.push(step);
                 var lastStep = dummyPath[this.isInPath(dummyPath, step) - 1];
                 var res = {
@@ -1445,38 +1540,38 @@ class Grid {
 
                 res = this.circumnavigate1(lastStep, step, this.objects['end'], res)
                 //usa res per capire il minimo e percorrere il percorso all'indietro
-                console.log(path.length);
+                // console.log(path.length);
                 path.pop();
                 path.pop();
-                console.log(path.length);
+                // console.log(path.length);
 
                 var minDist = Math.min(...res.dists);
-                console.log("min dist: " + minDist)
+                // console.log("min dist: " + minDist)
                 var nearest = res.circumnavigation[res.dists.lastIndexOf(minDist)];
-                console.log(nearest);
+                // console.log(nearest);
                 var backToNearest = res.circumnavigation.slice(res.dists.lastIndexOf(minDist), res.dists.length)
 
                 backToNearest.reverse();
-                console.log(backToNearest);
+                // console.log(backToNearest);
                 path = path.concat(res.circumnavigation);
                 path = path.concat(backToNearest.slice(1, backToNearest.length));
 
 
                 dummyPath = this.findDummyPath(nearest, this.objects['end']);
-                console.log("raggirato");
+                // console.log("raggirato");
                 i = 0;
-                console.log("--- " + i);
+                // console.log("--- " + i);
             }
         }
-        console.log(path);
+        // console.log(path);
         return path
     }
 
     followObs(lastStep, obstacle, sense = "anti") {
-        console.log("last ")
-        console.log(lastStep);
-        console.log("obs ")
-        console.log(obstacle);
+        // console.log("last ")
+        // console.log(lastStep);
+        // console.log("obs ")
+        // console.log(obstacle);
         var dir = "";
         if (lastStep.y > obstacle.y)
             dir += "N";
@@ -1488,9 +1583,9 @@ class Grid {
             dir += "E";
 
         var newStep;
-        console.log(dir)
+        // console.log(dir)
 
-        console.log(sense)
+        // console.log(sense)
         if (sense == "anti") {
             if (dir == "E" || dir == "SE") {
                 newStep = {
@@ -1547,19 +1642,19 @@ class Grid {
         obj.dists.push(dist)
         if (newStep.x == this.objects["end"].x && newStep.y == this.objects["end"].y)
             return obj;
-        console.log("new ");
-        console.log(newStep);
+        // console.log("new ");
+        // console.log(newStep);
         if (!this.cellIsWall(newStep.x, newStep.y)) {
             if (newStep.x == obj.circumnavigation[0].x && newStep.y == obj.circumnavigation[0].y) {
                 //non sto mettendo l'ultimo step, controllare se è giusto
-                console.log(obj.dists)
+                // console.log(obj.dists)
                 return obj
             }
             return this.circumnavigate1(newStep, obstacle, end, obj);
         } else
             obj.circumnavigation.pop();
         obj.dists.pop();
-        console.log(newStep)
+        // console.log(newStep)
         return this.circumnavigate1(lastStep, newStep, end, obj)
     }
 
@@ -1568,17 +1663,17 @@ class Grid {
         for (var i = 0; i < dummyPath.length; i++) {
             var step = dummyPath[i];
             if (!this.cellIsWall(step.x, step.y)) {
-                console.log(step)
+                // console.log(step)
                 path.push(step);
             } else {
-                console.log("wall")
+                // console.log("wall")
                 path.push(step);
                 var lastStep = dummyPath[this.isInPath(dummyPath, step) - 1];
                 path = this.circumnavigate2(lastStep, step, path, dummyPath)
-                console.log("raggirato")
+                // console.log("raggirato")
                 var last = path[path.length - 1]
                 i = this.isInPath(dummyPath, last) - 1;
-                console.log("--- " + i);
+                // console.log("--- " + i);
             }
         }
         return path
@@ -1588,7 +1683,7 @@ class Grid {
         var newStep = this.followObs(lastStep, obstacle);
         var newPath = newPath.slice(0, this.isInPath(newPath, lastStep) + 1)
         newPath.push(newStep)
-        console.log(newStep)
+        // console.log(newStep)
         if (!this.cellIsWall(newStep.x, newStep.y)) {
             if (this.isInPath(oldPath, newStep) != -1 && this.isInPath(newPath, newStep) == newPath.length - 1)
                 return newPath
