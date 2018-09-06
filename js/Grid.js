@@ -428,6 +428,9 @@ class Grid {
             if (obj.type == this.RECT) {
                 this.removeWall(obj.x, obj.y);
             }
+            if (obj.type == this.CIRCLE && obj.name != 'start' && obj.name != "end") {
+                this.removeObj(obj.name);
+            }
         }
         if (this.drawPath) {
             this.evaluatePath;

@@ -65,7 +65,11 @@ class PotentialFields {
         for (var i = 0; i < this.grid.size.x; i++) {
             var l = []
             for (var j = 0; j < this.grid.size.y; j++) {
-                pf = Math.pow(i - goal.x, 2) + Math.pow(j - goal.y, 2) + this.grid.repulsive_map[i][j];
+                // Goal has minimum potential value
+                if (i == goal.x && j == goal.y)
+                    pf = 0;
+                else 
+                    pf = Math.pow(i - goal.x, 2) + Math.pow(j - goal.y, 2) + this.grid.repulsive_map[i][j];
                 l.push(pf);
 
                 if (SHOW_LABELS)
