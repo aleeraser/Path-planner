@@ -26,7 +26,6 @@ class Grid {
         this.context = this.canvas_obj.getContext("2d");
 
         // Canvas size and cell number
-        // TODO: rendi la dimensione delle celle selezionabile con una combo box da 3 opzioni: piccolo medio grande
         this.size = {
             x: -1,
             y: -1
@@ -107,7 +106,7 @@ class Grid {
     // Generate the grid based on setting specified before
     generate() {
         if (this.size.x == null || this.size.y == null) {
-            console.error("Missing size parameters.");
+            log.error("Missing size parameters.");
             return false;
         }
 
@@ -118,39 +117,15 @@ class Grid {
             x: x,
             y: y
         };
-        // console.log("There can be " + cell_n.x + "x" + cell_n.y + " cells of side 100.");
 
         this.size = cell_n;
 
-
         // Calculate size in pixel based on dimensions and number of cells
         this.cell_width = (this.canvas_obj.width - this.spacing_x) / (cell_n.x + this.spacing_x);
-        // this.cell_width = cell_side_lenght;
-        // this.cell_width = ((this.canvas_obj.width - this.spacing_x) / 100) - this.spacing_x;
         this.cell_height = (this.canvas_obj.height - this.spacing_y) / (cell_n.y + this.spacing_y);
-        // this.cell_height = cell_side_lenght;
-
-        // console.log(this.cell_width, this.cell_height);
 
         this.grid_matrix = [];
         this.wall_map = [];
-
-        // for (var i = 0; i < this.size.y; i++) {
-        //     // this.wall_map[i] = [];
-
-        //     var grid_row = [];
-
-        //     for (var j = 0; j < this.size.x; j++) {
-        //         var cell_coords = {
-        //             x: this.spacing_x + j * (this.cell_width + this.spacing_x),
-        //             y: this.spacing_y + i * (this.cell_height + this.spacing_y)
-        //         }
-
-        //         grid_row.push(cell_coords);
-        //     }
-
-        //     this.grid_matrix.push(grid_row);
-        // }
 
         for (var i = 0; i < this.size.x; i++) {
             this.wall_map[i] = [];
@@ -261,7 +236,7 @@ class Grid {
                     break;
 
                 default:
-                    console.error("Uknown object type '" + obj.type + "'.");
+                    log.error("Uknown object type '" + obj.type + "'.");
             }
         }
     }
@@ -331,8 +306,6 @@ class Grid {
         }
 
         this.context.stroke();
-        //this.context.closePath();
-
     }
 
     drawText(obj) {
@@ -349,7 +322,6 @@ class Grid {
         }
 
         this.context.fillStyle = obj.color;
-        //this.context.textAlign = "center";
         this.context.font = "8px Arial";
         this.context.fillText(obj.text, pos.x, pos.y);
     }
@@ -365,25 +337,25 @@ class Grid {
     // OBJECTS CREATION/DESTRUCTION UTILS
     addObj(name, size, cell_x, cell_y, color, type, pointList, text) {
         if (this.objects == null) {
-            console.error("Grid has to be generated yet");
+            log.error("Grid has to be generated yet");
             return;
         }
 
         if (this.objects[name]) {
-            console.error("Name '" + name + "' already used by another object");
+            log.error("Name '" + name + "' already used by another object");
             return;
         }
 
 
         if (type != this.LINE && cell_x >= this.size.x || cell_y >= this.size.y) {
-            console.error("point (" + cell_x + ", " + cell_y + ") outside of the grid.\n\tGrid size: ' + this.size.x + 'x' + this.size.y + '.");
+            log.error("point (" + cell_x + ", " + cell_y + ") outside of the grid.\n\tGrid size: ' + this.size.x + 'x' + this.size.y + '.");
             return;
         }
 
         if (type == this.LINE) {
             for (var i = 0; i < pointList.length; i++) {
                 if (pointList[i].x >= this.size.x || pointList[i].y >= this.size.y) {
-                    console.error("Point (" + pointList[i].x + ", " + pointList[i].y + ") in pointlist outside of the grid.\n\tGrid size: ' + this.size.x + 'x' + this.size.y + '.");
+                    log.error("Point (" + pointList[i].x + ", " + pointList[i].y + ") in pointlist outside of the grid.\n\tGrid size: ' + this.size.x + 'x' + this.size.y + '.");
                     return;
                 }
             }
@@ -407,14 +379,14 @@ class Grid {
 
     removeObj(name) {
         if (this.objects == null) {
-            console.error("Grid has to be generated yet");
+            log.error("Grid has to be generated yet");
             return;
         }
 
         if (this.objects[name]) {
             delete this.objects[name];
         } else {
-            console.warn("Object '" + name + "' not found while trying to remove it.");
+            log.warn("Object '" + name + "' not found while trying to remove it.");
         }
         this.updateGraphics();
     }
@@ -509,7 +481,7 @@ class Grid {
         if (obj = this.objects[name]) {
 
             if (obj.type != this.CIRCLE && obj.type != this.RECT) {
-                console.error("Cannot move object type '" + obj.type + "'.");
+                log.error("Cannot move object type '" + obj.type + "'.");
                 return;
             }
 
@@ -534,12 +506,12 @@ class Grid {
                     break;
 
                 default:
-                    console.error("Direction unknown.");
+                    log.error("Direction unknown.");
             }
 
             // Check validity of movement
             if (obj.x < 0 || obj.x >= this.size.x || obj.y < 0 || obj.y >= this.size.y) {
-                console.error("Invalid new position.");
+                log.error("Invalid new position.");
                 obj.x = old_x;
                 obj.y = old_y;
             }
@@ -549,7 +521,7 @@ class Grid {
 
         }
 
-        console.error("Object name '" + name + "' not found.");
+        log.error("Object name '" + name + "' not found.");
     }
 
     setObjectPosition(name, x, y) {
@@ -566,9 +538,6 @@ class Grid {
             return true;
         else if (this.wall_map[x][y])
             return true;
-        /*else if ((x + 1 < this.size.x && y - 1 >= 0 && this.wall_map[x + 1][y] == 1 && this.wall_map[x][y - 1] == 1) || (x + 1 < this.size.x && y + 1 < this.size.y && this.wall_map[x + 1][y] == 1 && this.wall_map[x][y + 1] == 1) || (x - 1 >= 0 && y - 1 >= 0 && this.wall_map[x - 1][y] == 1 && this.wall_map[x][y - 1] == 1) || (x - 1 >= 0 && y + 1 < this.size.y && this.wall_map[x - 1][y] == 1 && this.wall_map[x][y + 1] == 1))
-            return true;
-            */
         return false
     }
 
@@ -584,7 +553,7 @@ class Grid {
             return null;
         }
 
-        // console.log("Cell " + cell_x + " - " + cell_y);
+        log.debug("Cell " + cell_x + " - " + cell_y);
 
         return {
             x: cell_x,
@@ -595,9 +564,9 @@ class Grid {
     relocateStartEnd(cell) {
         if (this.cellIsWall(cell.x, cell.y)) {
             if (grid.positionEndPoint) {
-                console.error("trying to place 'end' point over a wall.")
+                log.error("Trying to place 'end' point over a wall.")
             } else {
-                console.error("trying to place 'start' point over a wall.")
+                log.error("Trying to place 'start' point over a wall.")
             }
         } else {
             // Remove all previous paths
@@ -745,7 +714,7 @@ class Grid {
                     pointList = this.tangentBug(this.findDummyPath(this.objects['start'], this.objects['end']));
                     break;
                 default:
-                    console.error("No algorithm found with name '" + this.algorithm + "'.");
+                    log.error("No algorithm found with name '" + this.algorithm + "'.");
                     this.algorithm = null;
                     break;
             }
@@ -768,7 +737,7 @@ class Grid {
         for (var i = 0; i < this.grid_matrix.length; i++) { // x
             for (var j = 0; j < this.grid_matrix[i].length; j++) { // y
 
-                // console.log("Computing for cell (" + i + ", " + j + ").");
+                log.debug("Computing for cell (" + i + ", " + j + ").");
 
                 // skip wall cells
                 if (!this.cellIsWall(i, j)) {
@@ -781,7 +750,7 @@ class Grid {
                     for (var k = i - 1; k <= i + 1; k++) {
                         for (var l = j - 1; l <= j + 1; l++) {
 
-                            // console.log("\tChecking (" + k + ", " + l + ")...");
+                            log.debug("\tChecking (" + k + ", " + l + ")...");
 
                             // check that target is inside the map
                             if (k >= 0 && k < this.size.x && l >= 0 && l < this.size.y) {
@@ -800,58 +769,58 @@ class Grid {
 
 
                                         if (k == i || l == j) { // non-diagonal cells
-                                            // console.log("\t\t\tAdding cell (" + k + ", " + l + ") to adjacency graph.");
+                                            log.debug("\t\t\tAdding cell (" + k + ", " + l + ") to adjacency graph.");
                                             adjacency_matrix[source][target] = 1;
                                         } else { // diagonal cells
                                             // exclude diagonal movements if passing between two walls
                                             if (k < i) {
                                                 if (l < j) {
                                                     if (!(this.cellIsWall(k + 1, l) && this.cellIsWall(k, l + 1))) {
-                                                        // console.log("\t\t\tAdding cell (" + k + ", " + l + ") to adjacency graph.");
+                                                        log.debug("\t\t\tAdding cell (" + k + ", " + l + ") to adjacency graph.");
                                                         adjacency_matrix[source][target] = 2;
                                                     }
                                                 } else {
                                                     if (!(this.cellIsWall(k + 1, l) && this.cellIsWall(k, l - 1))) {
-                                                        // console.log("\t\t\tAdding cell (" + k + ", " + l + ") to adjacency graph.");
+                                                        log.debug("\t\t\tAdding cell (" + k + ", " + l + ") to adjacency graph.");
                                                         adjacency_matrix[source][target] = 2;
                                                     }
                                                 }
                                             } else {
                                                 if (l < j) {
                                                     if (!(this.cellIsWall(k - 1, l) && this.cellIsWall(k, l + 1))) {
-                                                        // console.log("\t\t\tAdding cell (" + k + ", " + l + ") to adjacency graph.");
+                                                        log.debug("\t\t\tAdding cell (" + k + ", " + l + ") to adjacency graph.");
                                                         adjacency_matrix[source][target] = 2;
                                                     }
                                                 } else {
                                                     if (!(this.cellIsWall(k - 1, l) && this.cellIsWall(k, l - 1))) {
-                                                        // console.log("\t\t\tAdding cell (" + k + ", " + l + ") to adjacency graph.");
+                                                        log.debug("\t\t\tAdding cell (" + k + ", " + l + ") to adjacency graph.");
                                                         adjacency_matrix[source][target] = 2;
                                                     }
                                                 }
                                             }
                                         }
                                     } else {
-                                        // console.log("\t\t\tCell (" + k + ", " + l + ") has a wall.");
+                                        log.debug("\t\t\tCell (" + k + ", " + l + ") has a wall.");
                                     }
                                 } else {
-                                    // console.log("\t\tCell (" + k + ", " + l + ") is the cell itself (" + i + ", " + j + "). Skipping...");
+                                    log.debug("\t\tCell (" + k + ", " + l + ") is the cell itself (" + i + ", " + j + "). Skipping...");
                                 }
 
                             } else {
-                                // console.log("\t\tCell (" + k + ", " + l + ") is outside map.");
+                                log.debug("\t\tCell (" + k + ", " + l + ") is outside map.");
                             }
                         }
                     }
 
                 } else {
-                    // console.log("\tWall in (" + i + ", " + j + ").");
+                    log.debug("\tWall in (" + i + ", " + j + ").");
                 }
 
-                // console.log("\n\n");
+                log.debug("\n\n");
             }
         }
 
-        // console.log(adjacency_matrix);
+        log.debug(adjacency_matrix);
 
 
         this.adjacency_graph = new Graph(adjacency_matrix);
@@ -864,11 +833,11 @@ class Grid {
         var end_key = grid.objects['end'].x + "_" + grid.objects['end'].y;
 
         var shortest = this.adjacency_graph.findShortestPath(start_key, end_key);
-        // console.log(shortest);
+        log.debug(shortest);
 
         // Null means no path available
         if (shortest == null) {
-            console.error("No path found.");
+            log.error("No path found.");
             this.clearPaths(true);
             return;
         }
@@ -890,7 +859,7 @@ class Grid {
 
     // Visibility Graph Methods
     visibilityGraph(probabilistic = false) {
-        // console.log("Visibility Graph Method");
+        log.debug("Visibility Graph Method");
 
         // Variables setup
         this.obstacle_vertex_names = [];
@@ -969,11 +938,11 @@ class Grid {
         // Shortest is a list of obstacle_vertex names
         var graph = new Graph(map);
         var shortest = graph.findShortestPath("start", "end");
-        // console.log(shortest);
+        log.debug(shortest);
 
         // Null means no path available
         if (shortest == null) {
-            console.error("No path found.");
+            log.error("No path found.");
             return;
         }
 
@@ -988,7 +957,6 @@ class Grid {
         });
 
         for (i = 1; i < shortest.length; i++) {
-            // TODO: Serve modo un po piu elegante magari
             // Nella creazione del nome non so quale punto è stato messo prima... Li provo entrambi.
             // Se lo uso al contrario i punti del path vanno usati in ordine contrario (reverse)
             var sp_name_v1 = 'singlepath-' + shortest[i - 1] + '-' + shortest[i];
@@ -1002,11 +970,10 @@ class Grid {
             point_list.slice(1).forEach(point => {
                 shortest_path_point_list.push(point);
             })
-            // console.log(point_list);
+            log.debug(point_list);
         }
 
-        // console.log(shortest_path_point_list);
-        //this.addPath(shortest_path_point_list, "best", grid.SMALL, this.BEST_PATH_COLOR);
+        log.debug(shortest_path_point_list);
         return shortest_path_point_list;
     }
 
@@ -1118,7 +1085,7 @@ class Grid {
 
     logObjectNames() {
         for (var key in this.objects) {
-            // console.log(key);
+            log.debug(key);
         }
     }
 
@@ -1167,8 +1134,8 @@ class Grid {
                 }
             }
         }
-        // console.log("Repulsive map:");
-        // console.log(this.repulsive_map);
+        log.debug("Repulsive map:");
+        log.debug(this.repulsive_map);
 
 
         // Potential matrix
@@ -1185,8 +1152,8 @@ class Grid {
             }
             this.potential_map.push(l);
         }
-        // console.log("Potential map:");
-        // console.log(this.potential_map);
+        log.debug("Potential map:");
+        log.debug(this.potential_map);
 
 
         // Follow potential from start position
@@ -1199,21 +1166,20 @@ class Grid {
 
         while (position.x != goal.x || position.y != goal.y) {
             position = this.performPotentialStep(position, path, memory);
-            // console.log(position);
+            log.debug(position);
             if (position.x == null || position.y == null) {
-                alert('Local minimum');
+                console.error('Local minimum');
                 break;
             }
             if (this.isInPath(path, position) > -1 && !memory) {
-                alert('Loop');
+                console.error('Loop');
                 break;
             }
             path.push(position);
         }
 
-        // console.log("Done");
-        //console.log(path);
-        //this.addPath(path, "best", grid.SMALL, this.BEST_PATH_COLOR);
+        log.debug("Done");
+        log.debug(path);
         return path;
     }
 
@@ -1226,7 +1192,6 @@ class Grid {
     }
 
     performPotentialStep(position, path, memory) {
-        //alert('Potential step: ' + position.x + " " + position.y);
         var x_index, y_index;
         var x = [position.x + 1, position.x, position.x - 1];
         var y = [position.y - 1, position.y, position.y + 1];
@@ -1251,10 +1216,6 @@ class Grid {
                                     x: x[x_index],
                                     y: y[y_index]
                                 }) == -1) {
-                                //best_potential = this.potential_map[x[x_index]][y[y_index]];
-                                //move.x = x[x_index];
-                                //move.y = y[y_index];
-
                                 var aux = {};
                                 aux.x = x[x_index];
                                 aux.y = y[y_index];
@@ -1328,14 +1289,14 @@ class Grid {
     }
 
     tangentBug(dummyPath) {
-        // console.log("tangent bug");
+        log.debug("tangent bug");
 
         var path = [];
         for (var i = 0; i < dummyPath.length; i++) { //try to follow the dummy path
-            // console.log(dummyPath[i])
+            log.debug(dummyPath[i])
             var range = this.rangeArea(dummyPath[i], 2);
-            // console.log('range');
-            // console.log(range);
+            log.debug('range');
+            log.debug(range);
             var free = true;
             var discontinuities = [];
             for (var j = 0; j < range.length; j++) { //check if range area is free
@@ -1346,19 +1307,19 @@ class Grid {
                 }
             }
             if (free) { //if free follow the dummy path
-                // console.log(dummyPath[i])
-                // console.log("free")
+                log.debug(dummyPath[i])
+                log.debug("free")
                 path.push(dummyPath[i])
             } else {
-                // console.log(dummyPath[i])
-                // console.log("not free")
+                log.debug(dummyPath[i])
+                log.debug("not free")
                 var min;
                 var minDist = 100;
-                // console.log("-------- ")
-                // console.log(discontinuities);
+                log.debug("-------- ")
+                log.debug(discontinuities);
                 discontinuities = this.findDiscontinuities(discontinuities);
-                // console.log("-------- ")
-                // console.log(discontinuities);
+                log.debug("-------- ")
+                log.debug(discontinuities);
                 for (var j = 0; j < discontinuities.length; j++) { //find the nearest discontinuity
                     var toDisc = this.findDummyPath(dummyPath[i], discontinuities[j]);
                     var dist = this.pathCost(this.findDummyPath(discontinuities[j], grid.objects['end'])) + this.pathCost(toDisc) //the distance is given by the sum of the distances between you and the discontinuity and between the discontinuity and the end
@@ -1367,29 +1328,29 @@ class Grid {
                             dist = 100;
                     }
                     if (dist < minDist) {
-                        // console.log(discontinuities[j])
+                        log.debug(discontinuities[j])
                         min = discontinuities[j];
                         minDist = dist;
                     }
                 }
                 var toDisc = this.findDummyPath(dummyPath[i], min);
                 if (toDisc.length > 1) {
-                    // console.log("toDisc");
-                    // console.log(toDisc)
+                    log.debug("toDisc");
+                    log.debug(toDisc)
                     path = path.concat(toDisc);
                     path.pop();
                     //now boundary following 
                     //heuristic to understand in which direction is better to turn around the obstacle
                     var dir = "anti";
                     if (Math.abs(this.objects["end"].x - this.objects["start"].x) > Math.abs(this.objects["end"].y - this.objects["start"].y)) { // i'm moving horizontally
-                        // console.log("orizzontale")
+                        log.debug("orizzontale")
                         if ((toDisc[0].x < toDisc[1].x && toDisc[0].y > toDisc[1].y) || (toDisc[0].x > toDisc[1].x && toDisc[0].y < toDisc[1].y))
                             dir = "or";
                     } else { // vertically
                         if ((toDisc[0].x > toDisc[1].x && toDisc[0].y > toDisc[1].y) || (toDisc[0].x < toDisc[1].x && toDisc[0].y < toDisc[1].y))
                             dir = "or";
                     }
-                    // console.log(dir)
+                    log.debug(dir)
                     this.boundaryFollow(toDisc[toDisc.length - 2], min, this.objects["end"], dir, path);
                 } else {
                     path.push(dummyPath[i]);
@@ -1417,19 +1378,19 @@ class Grid {
             for (var j = 0; j < range.length; j++) { //check if range area is free
                 if (this.cellIsWall(range[j].x, range[j].y) || ((this.cellIsWall(range[j].x + 1, range[j].y) && this.cellIsWall(range[j].x, range[j].y - 1)) || this.cellIsWall(range[j].x + 1, range[j].y) && this.cellIsWall(range[j].x, range[j].y + 1)) || (this.cellIsWall(range[j].x - 1, range[j].y) && this.cellIsWall(range[j].x, range[j].y - 1)) || (this.cellIsWall(range[j].x - 1, range[j].y) && this.cellIsWall(range[j].x, range[j].y + 1))) {
                     if (this.isInPath(dummy, range[j]) != -1) { //if there are obstacles in range, but the dummy path is free follow the dummy path
-                        // console.log("not free in folow")
+                        log.debug("not free in folow")
                         free = false;
                         break;
                     }
                 }
             }
-            if (free && dReach < dFollowed) { //nota se non ho mai il dummy path libero a distanza 2 mi fotto..
+            if (free && dReach <= dFollowed) {
                 return path
             }
             return this.boundaryFollow(newStep, obstacle, end, dir, path);
         } else
-            // console.log(newStep)
-            return this.boundaryFollow(last, newStep, end, dir, path);
+            log.debug(newStep)
+        return this.boundaryFollow(last, newStep, end, dir, path);
     }
 
     findDiscontinuities(obs) {
@@ -1468,8 +1429,8 @@ class Grid {
             }
         }
         var min = Math.min(...counts);
-        // console.log("min " + min);
-        // console.log(disc);
+        log.debug("min " + min);
+        log.debug(disc);
         var res = [];
         for (var i = 0; i <= disc.length; i++) {
             if (counts[i] <= min || counts[i] < 2) {
@@ -1521,10 +1482,10 @@ class Grid {
 
 
     followObs(lastStep, obstacle, sense = "anti") {
-        // console.log("last ")
-        // console.log(lastStep);
-        // console.log("obs ")
-        // console.log(obstacle);
+        log.debug("last ")
+        log.debug(lastStep);
+        log.debug("obs ")
+        log.debug(obstacle);
         var dir = "";
         if (lastStep.y > obstacle.y)
             dir += "N";
@@ -1536,9 +1497,9 @@ class Grid {
             dir += "E";
 
         var newStep;
-        // console.log(dir)
+        log.debug(dir)
 
-        // console.log(sense)
+        log.debug(sense)
         if (sense == "anti") {
             if (dir == "E" || dir == "SE") {
                 newStep = {
@@ -1592,10 +1553,10 @@ class Grid {
         for (var i = 0; i < dummyPath.length; i++) {
             var step = dummyPath[i];
             if (!this.cellIsWall(step.x, step.y)) {
-                // console.log(step)
+                log.debug(step)
                 path.push(step);
             } else {
-                // console.log("wall")
+                log.debug("wall")
                 path.push(step);
                 var lastStep = dummyPath[this.isInPath(dummyPath, step) - 1];
                 var res = {
@@ -1610,30 +1571,30 @@ class Grid {
 
                 res = this.circumnavigate1(lastStep, step, this.objects['end'], res)
                 //usa res per capire il minimo e percorrere il percorso all'indietro
-                // console.log(path.length);
+                log.debug(path.length);
                 path.pop();
                 path.pop();
-                // console.log(path.length);
+                log.debug(path.length);
 
                 var minDist = Math.min(...res.dists);
-                // console.log("min dist: " + minDist)
+                log.debug("min dist: " + minDist)
                 var nearest = res.circumnavigation[res.dists.lastIndexOf(minDist)];
-                // console.log(nearest);
+                log.debug(nearest);
                 var backToNearest = res.circumnavigation.slice(res.dists.lastIndexOf(minDist), res.dists.length)
 
                 backToNearest.reverse();
-                // console.log(backToNearest);
+                log.debug(backToNearest);
                 path = path.concat(res.circumnavigation);
                 path = path.concat(backToNearest.slice(1, backToNearest.length));
 
 
                 dummyPath = this.findDummyPath(nearest, this.objects['end']);
-                // console.log("raggirato");
+                log.debug("raggirato");
                 i = 0;
-                // console.log("--- " + i);
+                log.debug("--- " + i);
             }
         }
-        // console.log(path);
+        log.debug(path);
         return path
     }
 
@@ -1645,18 +1606,18 @@ class Grid {
         obj.dists.push(dist)
         if (newStep.x == this.objects["end"].x && newStep.y == this.objects["end"].y)
             return obj;
-        // console.log("new ");
-        // console.log(newStep);
+        log.debug("new ");
+        log.debug(newStep);
         if (!this.cellIsWall(newStep.x, newStep.y)) {
             if (newStep.x == obj.circumnavigation[0].x && newStep.y == obj.circumnavigation[0].y) { // se hai completato il giro
-                // console.log(obj.dists)
+                log.debug(obj.dists)
                 return obj
             }
             return this.circumnavigate1(newStep, obstacle, end, obj);
         }
         obj.circumnavigation.pop();
         obj.dists.pop();
-        // console.log(newStep)
+        log.debug(newStep)
         return this.circumnavigate1(lastStep, newStep, end, obj)
     }
 
@@ -1665,17 +1626,17 @@ class Grid {
         for (var i = 0; i < dummyPath.length; i++) {
             var step = dummyPath[i];
             if (!this.cellIsWall(step.x, step.y)) {
-                // console.log(step)
+                log.debug(step)
                 path.push(step);
             } else {
-                // console.log("wall")
+                log.debug("wall")
                 path.push(step);
                 var lastStep = dummyPath[this.isInPath(dummyPath, step) - 1];
                 path = this.circumnavigate2(lastStep, step, path, dummyPath)
-                // console.log("raggirato")
+                log.debug("raggirato")
                 var last = path[path.length - 1]
                 i = this.isInPath(dummyPath, last) - 1; // il nuovo punto è sul dummy path, quindi basta ripartire da quell'indice
-                // console.log("--- " + i);
+                log.debug("--- " + i);
             }
         }
         return path
@@ -1685,7 +1646,7 @@ class Grid {
         var newStep = this.followObs(lastStep, obstacle);
         var newPath = newPath.slice(0, this.isInPath(newPath, lastStep) + 1)
         newPath.push(newStep)
-        // console.log(newStep)
+        log.debug(newStep)
         if (!this.cellIsWall(newStep.x, newStep.y)) {
             if (this.isInPath(oldPath, newStep) != -1 && this.isInPath(newPath, newStep) == newPath.length - 1)
                 return newPath

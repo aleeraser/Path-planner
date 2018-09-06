@@ -86,7 +86,7 @@
 
             </div>
             <div class="card-action center-align">
-                <button class="btn blue-grey white-text" onclick="clearWalls()">Clear walls</button>
+                <button class="btn blue-grey white-text" onclick="grid.clearWalls()()">Clear walls</button>
                 <button class="btn blue-grey white-text" onclick="grid.clearPaths()">Clear path</button>
             </div>
 
@@ -94,6 +94,7 @@
 
         <script type="text/javascript" src="js/grid.js"></script>
         <script type="text/javascript" src="libs/graph.js"></script>
+        <script type="text/javascript" src="libs/loglevel.js"></script>
         <script type="text/javascript" src="libs/materialize.js"></script>
         <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
             crossorigin="anonymous"></script>
@@ -102,12 +103,28 @@
             var width = document.body.clientWidth,
                 height = document.body.clientHeight;
 
-            function clearWalls() {
-                grid.clearWalls();
-            }
-
-            function clearPaths() {
-                grid.clearPaths();
+            var debugLevel = (new URL(document.location)).searchParams.get("debug");
+            switch (debugLevel) {
+                case "":
+                case "debug":
+                case "on":
+                    log.setLevel(log.levels.DEBUG);
+                    break;
+                case "info":
+                    log.setLevel(log.levels.INFO);
+                    break;
+                case "trace":
+                    log.setLevel(log.levels.TRACE);
+                    break;
+                case "warn":
+                    log.setLevel(log.levels.WARN);
+                    break;
+                case "error":
+                    log.setLevel(log.levels.ERROR);
+                    break;
+                default:
+                    log.setLevel(log.levels.WARN);
+                    break;
             }
 
             // Create class passing canvas object id
