@@ -77,7 +77,7 @@
 
             </div>
             <div class='card-action center-align'>
-                <button class='btn blue-grey white-text' onclick='grid.clearWalls()()'>Clear walls</button>
+                <button class='btn blue-grey white-text' onclick='grid.clearWalls()()'>Clear obstacles</button>
                 <button class='btn blue-grey white-text' onclick='grid.clearPaths()'>Clear path</button>
             </div>
 
@@ -135,6 +135,32 @@
                     break;
             }
 
+            // theme selection
+            var currentTheme = 'dark';
+
+            function updateTheme(themeSelectionRadio) {
+                currentTheme = themeSelectionRadio.value;
+                if (currentTheme == 'light') {
+                    $('body').removeClass('dark-theme').addClass('light-theme');
+                    $('.card').removeClass('lighten-5').addClass('darken-3');
+                    $('.collapsible-header').removeClass('lighten-4').addClass('text-lighten-4');
+                    $('.collapsible-body').removeClass('white').addClass('blue-grey').addClass('darken-1').addClass(
+                        'blue-grey-text').addClass('text-lighten-4');
+                    $('.instruction-header').addClass('blue-grey-text').addClass('text-lighten-2');
+                    $('.theme-option').addClass('blue-grey-text').addClass('text-lighten-4');
+                    grid.lightTheme(true);
+                } else if (currentTheme == 'dark') {
+                    $('body').removeClass('light-theme').addClass('dark-theme');
+                    $('.card').removeClass('darken-3').addClass('lighten-5');
+                    $('.collapsible-header').removeClass('text-lighten-4').addClass('lighten-4');
+                    $('.collapsible-body').removeClass('blue-grey').removeClass('darken-1').removeClass(
+                        'blue-grey-text').removeClass('text-lighten-4').addClass('white');
+                    $('.instruction-header').removeClass('blue-grey-text').removeClass('text-lighten-2');
+                    $('.theme-option').removeClass('blue-grey-text').removeClass('text-lighten-4');
+                    grid.darkTheme(true);
+                }
+            }
+
             $(document).ready(function () {
                 // initialize the algorithm select
                 $.each(algorithms, function (key, value) {
@@ -169,33 +195,6 @@
                     grid.setAlgorithm($(this).val());
                     grid.evaluatePath();
                 });
-
-
-                // theme selection
-                var currentTheme = 'dark';
-
-                function updateTheme(themeSelectionRadio) {
-                    currentTheme = themeSelectionRadio.value;
-                    if (currentTheme == 'light') {
-                        $('body').removeClass('dark-theme').addClass('light-theme');
-                        $('.card').removeClass('lighten-5').addClass('darken-3');
-                        $('.collapsible-header').removeClass('lighten-4').addClass('text-lighten-4');
-                        $('.collapsible-body').removeClass('white').addClass('blue-grey').addClass('darken-1').addClass(
-                            'blue-grey-text').addClass('text-lighten-4');
-                        $('.instruction-header').addClass('blue-grey-text').addClass('text-lighten-2');
-                        $('.theme-option').addClass('blue-grey-text').addClass('text-lighten-4');
-                        grid.lightTheme(true);
-                    } else if (currentTheme == 'dark') {
-                        $('body').removeClass('light-theme').addClass('dark-theme');
-                        $('.card').removeClass('darken-3').addClass('lighten-5');
-                        $('.collapsible-header').removeClass('text-lighten-4').addClass('lighten-4');
-                        $('.collapsible-body').removeClass('blue-grey').removeClass('darken-1').removeClass(
-                            'blue-grey-text').removeClass('text-lighten-4').addClass('white');
-                        $('.instruction-header').removeClass('blue-grey-text').removeClass('text-lighten-2');
-                        $('.theme-option').removeClass('blue-grey-text').removeClass('text-lighten-4');
-                        grid.darkTheme(true);
-                    }
-                }
 
 
                 // instructions panel drag
