@@ -178,17 +178,6 @@
                 grid = new Grid('canvas', width, height);
                 grid.generate();
 
-                // Click listeners
-                {
-                    grid.setOnCellClickDrag(function (x, y) {
-                        grid.toggleWall(x, y);
-                    });
-
-                    grid.setOnCellRightClick(function (cell) {
-                        grid.relocateStartEnd(cell);
-                    });
-                }
-
                 // path planning algorithm update on select change
                 grid.setAlgorithm($('#algorithmSelect').val());
                 $('#algorithmSelect').on('change', function () {
