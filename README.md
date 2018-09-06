@@ -1,4 +1,4 @@
-# ![QR-Vey](resources/path_planner.png?raw=true "Path Planner")
+# ![Path-Planner](resources/path_planner.png?raw=true "Path Planner")
 
 Path planner is a webapp aimed for visually compare different path planning algorithms for intelligent agents.
 

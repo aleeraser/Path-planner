@@ -734,7 +734,7 @@ class Grid {
                     break;
                 case "potential-memory":
                     pointList = this.potentialField(true);
-                    break;     
+                    break;
                 case "bug1":
                     pointList = this.bug1(this.findDummyPath(this.objects['start'], this.objects['end']));
                     break;
@@ -798,7 +798,7 @@ class Grid {
                                         // movement between two diagonally adjacent walls
                                         // adjacency_matrix[source][target] = k == i || l == j ? 1 : 2;
 
-                                        
+
                                         if (k == i || l == j) { // non-diagonal cells
                                             // console.log("\t\t\tAdding cell (" + k + ", " + l + ") to adjacency graph.");
                                             adjacency_matrix[source][target] = 1;
@@ -926,7 +926,7 @@ class Grid {
             for (j = i + 1; j < point_names.length; j++) {
 
                 var p = this.findDummyPathIfFree(grid.objects[point_names[i]], grid.objects[point_names[j]]);
-                
+
                 // Dummy path was through a wall; ignore it
                 if (p == null) {
                     continue;
@@ -1039,10 +1039,10 @@ class Grid {
                 return null;
 
             // Avoid diagonal between obstacles
-            if (x == last.x+1 && y == last.y+1 && this.cellIsWall(last.x+1, last.y) && this.cellIsWall(last.x, last.y+1)) return null;
-            if (x == last.x-1 && y == last.y-1 && this.cellIsWall(last.x-1, last.y) && this.cellIsWall(last.x, last.y-1)) return null;
-            if (x == last.x+1 && y == last.y-1 && this.cellIsWall(last.x+1, last.y) && this.cellIsWall(last.x, last.y-1)) return null;
-            if (x == last.x-1 && y == last.y+1 && this.cellIsWall(last.x-1, last.y) && this.cellIsWall(last.x, last.y+1)) return null;
+            if (x == last.x + 1 && y == last.y + 1 && this.cellIsWall(last.x + 1, last.y) && this.cellIsWall(last.x, last.y + 1)) return null;
+            if (x == last.x - 1 && y == last.y - 1 && this.cellIsWall(last.x - 1, last.y) && this.cellIsWall(last.x, last.y - 1)) return null;
+            if (x == last.x + 1 && y == last.y - 1 && this.cellIsWall(last.x + 1, last.y) && this.cellIsWall(last.x, last.y - 1)) return null;
+            if (x == last.x - 1 && y == last.y + 1 && this.cellIsWall(last.x - 1, last.y) && this.cellIsWall(last.x, last.y + 1)) return null;
 
             pointList.push({
                 x: x,
@@ -1157,9 +1157,9 @@ class Grid {
                     influence.forEach(x => {
                         influence.forEach(y => {
                             var repulsion = SCALING_FACTOR / (Math.abs(x) + Math.abs(y));
-                            if (i+x > 0 && i+x < this.size.x && j+y > 0 && j+y < this.size.y) {
-                                if (this.repulsive_map[i+x][j+y] < repulsion) {
-                                    this.repulsive_map[i+x][j+y] = repulsion;
+                            if (i + x > 0 && i + x < this.size.x && j + y > 0 && j + y < this.size.y) {
+                                if (this.repulsive_map[i + x][j + y] < repulsion) {
+                                    this.repulsive_map[i + x][j + y] = repulsion;
                                 }
                             }
                         })
@@ -1228,8 +1228,8 @@ class Grid {
     performPotentialStep(position, path, memory) {
         //alert('Potential step: ' + position.x + " " + position.y);
         var x_index, y_index;
-        var x = [position.x+1, position.x, position.x-1];
-        var y = [position.y-1, position.y, position.y+1];
+        var x = [position.x + 1, position.x, position.x - 1];
+        var y = [position.y - 1, position.y, position.y + 1];
 
         var best_potential;
         if (!memory) best_potential = this.potential_map[position.x][position.y];
@@ -1245,9 +1245,12 @@ class Grid {
                 // Exclude the point itself
                 if (position.x != x[x_index] || position.y != y[y_index]) {
                     if (x[x_index] > 0 && x[x_index] < this.size.x && y[y_index] > 0 && y[y_index] < this.size.y) {
-                        
+
                         if (this.wall_map[x[x_index]][y[y_index]] != 1) {
-                            if (this.potential_map[x[x_index]][y[y_index]] < best_potential && this.isInPath(path, {x: x[x_index], y: y[y_index]}) == -1) {
+                            if (this.potential_map[x[x_index]][y[y_index]] < best_potential && this.isInPath(path, {
+                                    x: x[x_index],
+                                    y: y[y_index]
+                                }) == -1) {
                                 //best_potential = this.potential_map[x[x_index]][y[y_index]];
                                 //move.x = x[x_index];
                                 //move.y = y[y_index];
@@ -1257,10 +1260,10 @@ class Grid {
                                 aux.y = y[y_index];
 
                                 // Avoid diagonal between obstacles
-                                if (aux.x == position.x+1 && aux.y == position.y+1 && this.cellIsWall(position.x+1, position.y) && this.cellIsWall(position.x, position.y+1)) continue;
-                                if (aux.x == position.x-1 && aux.y == position.y-1 && this.cellIsWall(position.x-1, position.y) && this.cellIsWall(position.x, position.y-1)) continue;
-                                if (aux.x == position.x+1 && aux.y == position.y-1 && this.cellIsWall(position.x+1, position.y) && this.cellIsWall(position.x, position.y-1)) continue;
-                                if (aux.x == position.x-1 && aux.y == position.y+1 && this.cellIsWall(position.x-1, position.y) && this.cellIsWall(position.x, position.y+1)) continue;
+                                if (aux.x == position.x + 1 && aux.y == position.y + 1 && this.cellIsWall(position.x + 1, position.y) && this.cellIsWall(position.x, position.y + 1)) continue;
+                                if (aux.x == position.x - 1 && aux.y == position.y - 1 && this.cellIsWall(position.x - 1, position.y) && this.cellIsWall(position.x, position.y - 1)) continue;
+                                if (aux.x == position.x + 1 && aux.y == position.y - 1 && this.cellIsWall(position.x + 1, position.y) && this.cellIsWall(position.x, position.y - 1)) continue;
+                                if (aux.x == position.x - 1 && aux.y == position.y + 1 && this.cellIsWall(position.x - 1, position.y) && this.cellIsWall(position.x, position.y + 1)) continue;
 
                                 best_potential = this.potential_map[x[x_index]][y[y_index]];
                                 move.x = aux.x;
@@ -1370,7 +1373,7 @@ class Grid {
                     }
                 }
                 var toDisc = this.findDummyPath(dummyPath[i], min);
-                if (toDisc.length >1){
+                if (toDisc.length > 1) {
                     // console.log("toDisc");
                     // console.log(toDisc)
                     path = path.concat(toDisc);
@@ -1388,10 +1391,9 @@ class Grid {
                     }
                     // console.log(dir)
                     this.boundaryFollow(toDisc[toDisc.length - 2], min, this.objects["end"], dir, path);
-                }
-                else {
+                } else {
                     path.push(dummyPath[i]);
-                    this.boundaryFollow(dummyPath[i], dummyPath[i+1], this.objects["end"], "anti", path);
+                    this.boundaryFollow(dummyPath[i], dummyPath[i + 1], this.objects["end"], "anti", path);
                 }
                 dummyPath = this.findDummyPath(path[path.length - 1], this.objects["end"]);
                 i = 0;
@@ -1410,7 +1412,7 @@ class Grid {
             var dummy = this.findDummyPath(newStep, end);
             var range = this.rangeArea(newStep, 1);
             var free = true;
-            var dFollowed = this.pathCost(this.findDummyPath(obstacle,end))
+            var dFollowed = this.pathCost(this.findDummyPath(obstacle, end))
             var dReach = this.pathCost(this.findDummyPath(newStep, end))
             for (var j = 0; j < range.length; j++) { //check if range area is free
                 if (this.cellIsWall(range[j].x, range[j].y) || ((this.cellIsWall(range[j].x + 1, range[j].y) && this.cellIsWall(range[j].x, range[j].y - 1)) || this.cellIsWall(range[j].x + 1, range[j].y) && this.cellIsWall(range[j].x, range[j].y + 1)) || (this.cellIsWall(range[j].x - 1, range[j].y) && this.cellIsWall(range[j].x, range[j].y - 1)) || (this.cellIsWall(range[j].x - 1, range[j].y) && this.cellIsWall(range[j].x, range[j].y + 1))) {
@@ -1421,13 +1423,13 @@ class Grid {
                     }
                 }
             }
-            if (free && dReach < dFollowed ) { //nota se non ho mai il dummy path libero a distanza 2 mi fotto..
+            if (free && dReach < dFollowed) { //nota se non ho mai il dummy path libero a distanza 2 mi fotto..
                 return path
             }
             return this.boundaryFollow(newStep, obstacle, end, dir, path);
         } else
             // console.log(newStep)
-        return this.boundaryFollow(last, newStep, end, dir, path);
+            return this.boundaryFollow(last, newStep, end, dir, path);
     }
 
     findDiscontinuities(obs) {
@@ -1517,7 +1519,7 @@ class Grid {
         return range
     }
 
-    
+
     followObs(lastStep, obstacle, sense = "anti") {
         // console.log("last ")
         // console.log(lastStep);
@@ -1526,16 +1528,16 @@ class Grid {
         var dir = "";
         if (lastStep.y > obstacle.y)
             dir += "N";
-            else if (lastStep.y < obstacle.y)
+        else if (lastStep.y < obstacle.y)
             dir += "S";
-            if (lastStep.x > obstacle.x)
+        if (lastStep.x > obstacle.x)
             dir += "O";
-            else if (lastStep.x < obstacle.x)
+        else if (lastStep.x < obstacle.x)
             dir += "E";
-            
+
         var newStep;
         // console.log(dir)
-        
+
         // console.log(sense)
         if (sense == "anti") {
             if (dir == "E" || dir == "SE") {
@@ -1634,7 +1636,7 @@ class Grid {
         // console.log(path);
         return path
     }
-    
+
     circumnavigate1(lastStep, obstacle, end, obj) { //end è la destinazione finale, mi serve per la distanza, dists contiene le distanze lungo la circumnavigazione
         var newStep = this.followObs(lastStep, obstacle);
         var dummy = this.findDummyPath(newStep, end);

@@ -23,7 +23,7 @@
     border: none;
 }
 
-.collapsible-body > p {
+.collapsible-body>p {
     margin-bottom: .5em;
 }
 
