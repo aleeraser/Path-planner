@@ -2,35 +2,35 @@
 
 <head>
     <title>Canvas Grid</title>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link type="text/css" rel="stylesheet" href="css/materialize.css" media="screen,projection" />
-    <link rel="stylesheet" type="text/css" href="css/general.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <link href='https://fonts.googleapis.com/icon?family=Material+Icons' rel='stylesheet'>
+    <link type='text/css' rel='stylesheet' href='css/materialize.css' media='screen,projection' />
+    <link rel='stylesheet' type='text/css' href='css/general.css'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' />
 
 </head>
 
-<body class="dark-theme">
-    <canvas id="canvas"></canvas>
-    <div class="draggable card blue-grey lighten-5">
-        <div class="card-content">
+<body class='dark-theme'>
+    <canvas id='canvas'></canvas>
+    <div class='draggable card blue-grey lighten-5'>
+        <div class='card-content'>
 
-            <div class="row">
-                <ul class="collapsible">
+            <div class='row'>
+                <ul class='collapsible'>
                     <li>
-                        <div class="collapsible-header blue-grey lighten-4 blue-grey-text">
-                            <div class="valign-wrapper">
-                                <i class="material-icons " id="collapsible-icon">chevron_right</i>
+                        <div class='collapsible-header blue-grey lighten-4 blue-grey-text'>
+                            <div class='valign-wrapper'>
+                                <i class='material-icons ' id='collapsible-icon'>chevron_right</i>
                                 <h5>Instructions</h5>
                             </div>
                         </div>
-                        <div class="collapsible-body white">
+                        <div class='collapsible-body white'>
                             <p>Use the left mouse button to place or remove obstacles.
-                                <span style="font-weight: bold">Tip</span>: you can also click and drag!</p>
+                                <span style='font-weight: bold'>Tip</span>: you can also click and drag!</p>
                             <p>Use the right mouse button to place
-                                <span class="green-text darken-1">start</span> and
-                                <span class="red-text darken-1">end</span> points. The path calculation will
+                                <span class='green-text darken-1'>start</span> and
+                                <span class='red-text darken-1'>end</span> points. The path calculation will
                                 immediately start after placing the
-                                <span class="red-text darken-1">end</span> point.</p>
+                                <span class='red-text darken-1'>end</span> point.</p>
                             <p>Path will be calculated using a planning algorithm picked from the selection below.</p>
                         </div>
                     </li>
@@ -38,88 +38,93 @@
 
                 <br>
 
-                <div class="input-field col s12">
-                    <select id="methodSelect">
-                        <option value="decomposition" selected>Cellular Decomposition</option>
-                        <option value="visibility">Visibility Graph</option>
-                        <option value="probabilistic">Probabilistic Roadmap</option>
-                        <option value="potential">Simple Potential Field</option>
-                        <option value="potential-memory">Potential Field with Memory</option>
-                        <option value="bug1">Bug v1</option>
-                        <option value="bug2">Bug v2</option>
-                        <option value="tangent-bug">Tangent Bug</option>
-                    </select>
+                <div class='input-field col s12'>
+                    <select id='algorithmSelect'></select>
                     <label>Planning algorithm</label>
                 </div>
 
                 <br>
 
-                <div class="input-field col s12">
-                    <p class="label instruction-header">Theme</p>
+                <div class='input-field col s12'>
+                    <p class='label instruction-header'>Theme</p>
                     <p>
                         <label>
-                            <input type="radio" class="with-gap" name="theme" value="dark" onclick="updateTheme(this);"
+                            <input type='radio' class='with-gap' name='theme' value='dark' onclick='updateTheme(this);'
                                 checked />
-                            <span class="theme-option">Dark</span>
+                            <span class='theme-option'>Dark</span>
                         </label>
                     </p>
                     <p>
                         <label>
-                            <input type="radio" class="with-gap" name="theme" value="light" onclick="updateTheme(this);" />
-                            <span class="theme-option">Light</span>
+                            <input type='radio' class='with-gap' name='theme' value='light' onclick='updateTheme(this);' />
+                            <span class='theme-option'>Light</span>
                         </label>
                     </p>
                 </div>
 
                 <br>
 
-                <div class="input-field col s12">
-                    <p class="instruction-header">Adjust cells size
-                        <button id="decreaseCellsSize" class="btn blue-grey white-text" disabled onclick="grid.decreaseCellsSize(this)">
-                            <i class="material-icons">zoom_out</i>
+                <div class='input-field col s12'>
+                    <p class='instruction-header'>Adjust cells size
+                        <button id='decreaseCellsSize' class='btn blue-grey white-text' disabled onclick='grid.decreaseCellsSize(this)'>
+                            <i class='material-icons'>zoom_out</i>
                         </button>
-                        <button id="increaseCellsSize" class="btn blue-grey white-text" onclick="grid.increaseCellsSize(this)">
-                            <i class="material-icons">zoom_in</i>
+                        <button id='increaseCellsSize' class='btn blue-grey white-text' onclick='grid.increaseCellsSize(this)'>
+                            <i class='material-icons'>zoom_in</i>
                         </button>
                     </p>
                 </div>
 
             </div>
-            <div class="card-action center-align">
-                <button class="btn blue-grey white-text" onclick="grid.clearWalls()()">Clear walls</button>
-                <button class="btn blue-grey white-text" onclick="grid.clearPaths()">Clear path</button>
+            <div class='card-action center-align'>
+                <button class='btn blue-grey white-text' onclick='grid.clearWalls()()'>Clear walls</button>
+                <button class='btn blue-grey white-text' onclick='grid.clearPaths()'>Clear path</button>
             </div>
 
         </div>
 
-        <script type="text/javascript" src="js/grid.js"></script>
-        <script type="text/javascript" src="libs/graph.js"></script>
-        <script type="text/javascript" src="libs/loglevel.js"></script>
-        <script type="text/javascript" src="libs/materialize.js"></script>
-        <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
-            crossorigin="anonymous"></script>
+        <script type='text/javascript' src='js/grid.js'></script>
+        <script type='text/javascript' src='js/algorithms/decomposition.js'></script>
+        <script type='text/javascript' src='libs/graph.js'></script>
+        <script type='text/javascript' src='libs/loglevel.js'></script>
+        <script src='https://code.jquery.com/jquery-3.3.1.min.js' integrity='sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8='
+            crossorigin='anonymous'></script>
+        <script type='text/javascript' src='libs/materialize.js'></script>
         <script>
             var grid;
             var width = document.body.clientWidth,
                 height = document.body.clientHeight;
 
-            var debugLevel = (new URL(document.location)).searchParams.get("debug");
-            switch (debugLevel) {
-                case "":
-                case "debug":
-                case "on":
+            // implemented algorithms
+            var algorithms = {
+                'decomposition': 'Cellular Decomposition',
+                'visibility': 'Visibility Graph',
+                'probabilistic': 'Probabilistic Roadmap',
+                'potential': 'Simple Potential Field',
+                'potential-memory': 'Potential Field with Memory',
+                'bug1': 'Bug v1',
+                'bug2': 'Bug v2',
+                'tangent-bug': 'Tangent Bug'
+            };
+
+            // setting console log level
+            var logLevel = (new URL(document.location)).searchParams.get('debug');
+            switch (logLevel) {
+                case '':
+                case 'debug':
+                case 'on':
                     log.setLevel(log.levels.DEBUG);
                     break;
-                case "info":
+                case 'info':
                     log.setLevel(log.levels.INFO);
                     break;
-                case "trace":
+                case 'trace':
                     log.setLevel(log.levels.TRACE);
                     break;
-                case "warn":
+                case 'warn':
                     log.setLevel(log.levels.WARN);
                     break;
-                case "error":
+                case 'error':
                     log.setLevel(log.levels.ERROR);
                     break;
                 default:
@@ -127,98 +132,92 @@
                     break;
             }
 
-            // Create class passing canvas object id
-            grid = new Grid('canvas', width, height);
-
-            // Apply settings and generate grid on canvas
-            grid.generate();
-
-            // Click listener
-            grid.setOnCellClickDrag(function (x, y) {
-                grid.toggleWall(x, y);
-            });
-
-            grid.setOnCellRightClick(function (cell) {
-                grid.relocateStartEnd(cell);
-            });
-
-            var select = document.getElementById("methodSelect");
-            grid.setAlgorithm(select.value);
-            select.onchange = function () {
-                grid.setAlgorithm(this.value);
-                grid.evaluatePath();
-            };
-
-            // material select init
-            document.addEventListener('DOMContentLoaded', function () {
-                var elems = document.querySelectorAll('select');
-                var instances = M.FormSelect.init(elems);
-            });
-
-            // collapsible init
-            document.addEventListener('DOMContentLoaded', function () {
-                var elems = document.querySelectorAll('.collapsible');
-                var instances = M.Collapsible.init(elems, {
-                    onOpenStart: function () {
-                        document.getElementById("collapsible-icon").innerHTML = "arrow_drop_down";
-                    },
-                    onCloseStart: function () {
-                        document.getElementById("collapsible-icon").innerHTML = "chevron_right";
-                    }
+            $(document).ready(function () {
+                // initialize the algorithm select
+                $.each(algorithms, function (key, value) {
+                    $('#algorithmSelect').append('<option value="' + key + '">' + value + '</option>');
                 });
-            });
+                $('#algorithmSelect').val('decomposition').prop('selected', true);
 
-            // theme selection
-            var currentTheme = "dark";
+                // materialize select initialization
+                $('select').formSelect();
 
-            function updateTheme(myRadio) {
+                // materialize collapsible panel initialization
+                $('.collapsible').collapsible();
 
-                currentTheme = myRadio.value;
+                // grid initialization
+                grid = new Grid('canvas', width, height);
+                grid.generate();
 
-                if (currentTheme == "light") {
-                    $("body").removeClass("dark-theme").addClass("light-theme");
-                    $(".card").removeClass("lighten-5").addClass("darken-3");
-                    $(".collapsible-header").removeClass("lighten-4").addClass("text-lighten-4");
-                    $(".collapsible-body").removeClass("white").addClass("blue-grey").addClass("darken-1").addClass(
-                        "blue-grey-text").addClass("text-lighten-4");
-                    $(".instruction-header").addClass("blue-grey-text").addClass("text-lighten-2");
-                    $(".theme-option").addClass("blue-grey-text").addClass("text-lighten-4");
-                    grid.lightTheme(true);
-                } else if (currentTheme == "dark") {
-                    $("body").removeClass("light-theme").addClass("dark-theme");
-                    $(".card").removeClass("darken-3").addClass("lighten-5");
-                    $(".collapsible-header").removeClass("text-lighten-4").addClass("lighten-4");
-                    $(".collapsible-body").removeClass("blue-grey").removeClass("darken-1").removeClass(
-                        "blue-grey-text").removeClass("text-lighten-4").addClass("white");
-                    $(".instruction-header").removeClass("blue-grey-text").removeClass("text-lighten-2");
-                    $(".theme-option").removeClass("blue-grey-text").removeClass("text-lighten-4");
-                    grid.darkTheme(true);
+                // Click listeners
+                {
+                    grid.setOnCellClickDrag(function (x, y) {
+                        grid.toggleWall(x, y);
+                    });
+
+                    grid.setOnCellRightClick(function (cell) {
+                        grid.relocateStartEnd(cell);
+                    });
                 }
-            }
 
-
-            // instructions panel drag
-            var instructionsPanel = $('.draggable'); //element 
-
-            instructionsPanel.on('mousedown', function (e) {
-                var dr = $(this).addClass("drag").css("cursor", "move");
-                height = dr.outerHeight();
-                width = dr.outerWidth();
-                ypos = dr.offset().top + height - e.pageY,
-                    xpos = dr.offset().left + width - e.pageX;
-                $(document.body).on('mousemove', function (e) {
-                    var itop = e.pageY + ypos - height;
-                    var ileft = e.pageX + xpos - width;
-                    if (dr.hasClass("drag")) {
-                        dr.offset({
-                            top: itop,
-                            left: ileft
-                        });
-                    }
-                }).on('mouseup', function (e) {
-                    dr.removeClass("drag");
+                // path planning algorithm update on select change
+                grid.setAlgorithm($('#algorithmSelect').val());
+                $('#algorithmSelect').on('change', function () {
+                    grid.setAlgorithm($(this).val());
+                    grid.evaluatePath();
                 });
-            });
+
+
+                // theme selection
+                var currentTheme = 'dark';
+
+                function updateTheme(themeSelectionRadio) {
+                    currentTheme = themeSelectionRadio.value;
+                    if (currentTheme == 'light') {
+                        $('body').removeClass('dark-theme').addClass('light-theme');
+                        $('.card').removeClass('lighten-5').addClass('darken-3');
+                        $('.collapsible-header').removeClass('lighten-4').addClass('text-lighten-4');
+                        $('.collapsible-body').removeClass('white').addClass('blue-grey').addClass('darken-1').addClass(
+                            'blue-grey-text').addClass('text-lighten-4');
+                        $('.instruction-header').addClass('blue-grey-text').addClass('text-lighten-2');
+                        $('.theme-option').addClass('blue-grey-text').addClass('text-lighten-4');
+                        grid.lightTheme(true);
+                    } else if (currentTheme == 'dark') {
+                        $('body').removeClass('light-theme').addClass('dark-theme');
+                        $('.card').removeClass('darken-3').addClass('lighten-5');
+                        $('.collapsible-header').removeClass('text-lighten-4').addClass('lighten-4');
+                        $('.collapsible-body').removeClass('blue-grey').removeClass('darken-1').removeClass(
+                            'blue-grey-text').removeClass('text-lighten-4').addClass('white');
+                        $('.instruction-header').removeClass('blue-grey-text').removeClass('text-lighten-2');
+                        $('.theme-option').removeClass('blue-grey-text').removeClass('text-lighten-4');
+                        grid.darkTheme(true);
+                    }
+                }
+
+
+                // instructions panel drag
+                var instructionsPanel = $('.draggable');
+
+                instructionsPanel.on('mousedown', function (e) {
+                    var dr = $(this).addClass('drag').css('cursor', 'move');
+                    height = dr.outerHeight();
+                    width = dr.outerWidth();
+                    ypos = dr.offset().top + height - e.pageY,
+                        xpos = dr.offset().left + width - e.pageX;
+                    $(document.body).on('mousemove', function (e) {
+                        var itop = e.pageY + ypos - height;
+                        var ileft = e.pageX + xpos - width;
+                        if (dr.hasClass('drag')) {
+                            dr.offset({
+                                top: itop,
+                                left: ileft
+                            });
+                        }
+                    }).on('mouseup', function (e) {
+                        dr.removeClass('drag');
+                    });
+                });
+            })
         </script>
 </body>
 
