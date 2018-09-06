@@ -67,24 +67,24 @@ class Decomposition {
                                             // exclude diagonal movements if passing between two walls
                                             if (k < i) {
                                                 if (l < j) {
-                                                    if (!(grid.cellIsWall(k + 1, l) && grid.cellIsWall(k, l + 1))) {
+                                                    if (!(grid.cellIsWall(k + 1, l) || grid.cellIsWall(k, l + 1))) {
                                                         log.debug("\t\t\tAdding cell (" + k + ", " + l + ") to adjacency graph.");
                                                         adjacency_matrix[source][target] = 2;
                                                     }
                                                 } else {
-                                                    if (!(grid.cellIsWall(k + 1, l) && grid.cellIsWall(k, l - 1))) {
+                                                    if (!(grid.cellIsWall(k + 1, l) || grid.cellIsWall(k, l - 1))) {
                                                         log.debug("\t\t\tAdding cell (" + k + ", " + l + ") to adjacency graph.");
                                                         adjacency_matrix[source][target] = 2;
                                                     }
                                                 }
                                             } else {
                                                 if (l < j) {
-                                                    if (!(grid.cellIsWall(k - 1, l) && grid.cellIsWall(k, l + 1))) {
+                                                    if (!(grid.cellIsWall(k - 1, l) || grid.cellIsWall(k, l + 1))) {
                                                         log.debug("\t\t\tAdding cell (" + k + ", " + l + ") to adjacency graph.");
                                                         adjacency_matrix[source][target] = 2;
                                                     }
                                                 } else {
-                                                    if (!(grid.cellIsWall(k - 1, l) && grid.cellIsWall(k, l - 1))) {
+                                                    if (!(grid.cellIsWall(k - 1, l) || grid.cellIsWall(k, l - 1))) {
                                                         log.debug("\t\t\tAdding cell (" + k + ", " + l + ") to adjacency graph.");
                                                         adjacency_matrix[source][target] = 2;
                                                     }
