@@ -62,11 +62,6 @@ class Grid {
         this.mouseDragAction = null;
         this.positionEndPoint = false;
 
-        this.onCellClickDrag = null;
-        this.onCellRightClick = function (cell) {
-            this.relocateStartEnd(cell);
-        };
-
         // Others
         this.algorithm = null;
 
@@ -144,6 +139,8 @@ class Grid {
         this.drawPath = false;
         this.updateGraphics();
     }
+
+
 
     // GETTERS and SETTERS
     setSize(size_x, size_y) {
@@ -332,6 +329,7 @@ class Grid {
         this.drawCells();
         this.drawObjects()
     }
+
 
 
     // OBJECTS CREATION/DESTRUCTION UTILS
@@ -648,6 +646,18 @@ class Grid {
         grid.mouseIsDown = false;
     }
 
+    onMouseClick(grid, event) {
+        if (!grid.mouseWasDragged) {
+            var cell;
+
+            if (cell = grid.getCorrespondingCell(grid, event)) {
+                grid.toggleWall(cell.x, cell.y);
+            }
+        }
+
+        grid.mouseWasDragged = false;
+    }
+
     onMouseRightClick(grid, event) {
         event.preventDefault();
 
@@ -655,31 +665,14 @@ class Grid {
             var cell;
 
             if (cell = grid.getCorrespondingCell(grid, event)) {
-                grid.onCellRightClick(cell);
+                grid.relocateStartEnd(cell);
             }
         }
     }
 
-    setOnCellRightClick(evHandler) {
-        this.onCellRightClick = evHandler;
-    }
 
-    onMouseClick(grid, event) {
-        if (!grid.mouseWasDragged) {
-            var cell;
 
-            if (cell = grid.getCorrespondingCell(grid, event)) {
-                grid.onCellClickDrag(cell.x, cell.y);
-            }
-        }
-
-        grid.mouseWasDragged = false;
-    }
-
-    setOnCellClickDrag(evHandler) {
-        this.onCellClickDrag = evHandler;
-    }
-
+    // PATH COMPUTATION
     evaluatePath() {
         if (this.drawPath) {
 
@@ -732,5 +725,30 @@ class Grid {
                 this.setObjectPosition("start", pointList[0].x, pointList[0].y);
             }
         }
+    }
+
+    pathCost(path) {
+        var last = path[0];
+        var cost = 0;
+        for (var i = 1; i < path.length; i++) {
+            if (Math.abs(last.x - path[i].x) == 1)
+                cost += 1
+            if (Math.abs(last.y - path[i].y) == 1)
+                cost += 1
+            last = path[i];
+        }
+        return cost
+    }
+
+    isInPath(path, step) {
+        var r = -1;
+        for (var i = 0; i < path.length; i++) {
+            var el = path[i];
+            if (el.x == step.x && el.y == step.y) {
+                r = i;
+                break;
+            }
+        }
+        return r;
     }
 }

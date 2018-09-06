@@ -40,18 +40,6 @@ class Bug {
         return pointList
     }
 
-    isInPath(path, step) { //index of 
-        var r = -1;
-        for (var i = 0; i < path.length; i++) {
-            var el = path[i];
-            if (el.x == step.x && el.y == step.y) {
-                r = i;
-                break;
-            }
-        }
-        return r;
-    }
-
     tangentBug() {
         log.debug("tangent bug");
 
@@ -66,7 +54,7 @@ class Bug {
             for (var j = 0; j < range.length; j++) { //check if range area is free
                 if (this.grid.cellIsWall(range[j].x, range[j].y) || ((this.grid.cellIsWall(range[j].x + 1, range[j].y) && this.grid.cellIsWall(range[j].x, range[j].y - 1)) || this.grid.cellIsWall(range[j].x + 1, range[j].y) && this.grid.cellIsWall(range[j].x, range[j].y + 1)) || (this.grid.cellIsWall(range[j].x - 1, range[j].y) && this.grid.cellIsWall(range[j].x, range[j].y - 1)) || (this.grid.cellIsWall(range[j].x - 1, range[j].y) && this.grid.cellIsWall(range[j].x, range[j].y + 1))) {
                     discontinuities.push(range[j]); //the list of obstacles in range
-                    if (this.isInPath(this.dummyPath, range[j]) != -1) //if there are obstacles in range, but the dummy path is free follow the dummy path
+                    if (this.grid.isInPath(this.dummyPath, range[j]) != -1) //if there are obstacles in range, but the dummy path is free follow the dummy path
                         free = false;
                 }
             }
@@ -86,7 +74,7 @@ class Bug {
                 log.debug(discontinuities);
                 for (var j = 0; j < discontinuities.length; j++) { //find the nearest discontinuity
                     var toDisc = this.findDummyPath(this.dummyPath[i], discontinuities[j]);
-                    var dist = this.pathCost(this.findDummyPath(discontinuities[j], grid.objects['end'])) + this.pathCost(toDisc) //the distance is given by the sum of the distances between you and the discontinuity and between the discontinuity and the end
+                    var dist = this.grid.pathCost(this.findDummyPath(discontinuities[j], grid.objects['end'])) + this.grid.pathCost(toDisc) //the distance is given by the sum of the distances between you and the discontinuity and between the discontinuity and the end
                     for (var z = 0; z < toDisc.length - 1; z++) { // check that the path to the discontinuity is free
                         if (this.grid.cellIsWall(toDisc[z].x, toDisc[z].y) || ((this.grid.cellIsWall(toDisc[z].x + 1, toDisc[z].y) && this.grid.cellIsWall(toDisc[z].x, toDisc[z].y - 1)) || this.grid.cellIsWall(toDisc[z].x + 1, toDisc[z].y) && this.grid.cellIsWall(toDisc[z].x, toDisc[z].y + 1)) || (this.grid.cellIsWall(toDisc[z].x - 1, toDisc[z].y) && this.grid.cellIsWall(toDisc[z].x, toDisc[z].y - 1)) || (this.grid.cellIsWall(toDisc[z].x - 1, toDisc[z].y) && this.grid.cellIsWall(toDisc[z].x, toDisc[z].y + 1)))
                             dist = 100;
@@ -137,11 +125,11 @@ class Bug {
             var dummy = this.findDummyPath(newStep, end);
             var range = this.rangeArea(newStep, 1);
             var free = true;
-            var dFollowed = this.pathCost(this.findDummyPath(obstacle, end))
-            var dReach = this.pathCost(this.findDummyPath(newStep, end))
+            var dFollowed = this.grid.pathCost(this.findDummyPath(obstacle, end))
+            var dReach = this.grid.pathCost(this.findDummyPath(newStep, end))
             for (var j = 0; j < range.length; j++) { //check if range area is free
                 if (this.grid.cellIsWall(range[j].x, range[j].y) || ((this.grid.cellIsWall(range[j].x + 1, range[j].y) && this.grid.cellIsWall(range[j].x, range[j].y - 1)) || this.grid.cellIsWall(range[j].x + 1, range[j].y) && this.grid.cellIsWall(range[j].x, range[j].y + 1)) || (this.grid.cellIsWall(range[j].x - 1, range[j].y) && this.grid.cellIsWall(range[j].x, range[j].y - 1)) || (this.grid.cellIsWall(range[j].x - 1, range[j].y) && this.grid.cellIsWall(range[j].x, range[j].y + 1))) {
-                    if (this.isInPath(dummy, range[j]) != -1) { //if there are obstacles in range, but the dummy path is free follow the dummy path
+                    if (this.grid.isInPath(dummy, range[j]) != -1) { //if there are obstacles in range, but the dummy path is free follow the dummy path
                         log.debug("not free in folow")
                         free = false;
                         break;
@@ -181,7 +169,7 @@ class Bug {
                 y: obs[i].y - 1
             })
             for (var j = 0; j < nears.length; j++) {
-                if (this.isInPath(obs, nears[j]) != -1)
+                if (this.grid.isInPath(obs, nears[j]) != -1)
                     count += 1
                 if (count > 3)
                     break
@@ -201,7 +189,7 @@ class Bug {
                 var first = true;
                 for (var j = 0; j < disc.length; j++) { //check that the discontinuity does not appear in the path from another one to the destination
                     if (i != j) {
-                        if (this.isInPath(paths[j], disc[i]) != -1) {
+                        if (this.grid.isInPath(paths[j], disc[i]) != -1) {
                             first = false;
                             break;
                         }
@@ -214,19 +202,6 @@ class Bug {
         if (res.length > 0)
             return res
         return (disc)
-    }
-
-    pathCost(path) {
-        var last = path[0];
-        var cost = 0;
-        for (var i = 1; i < path.length; i++) {
-            if (Math.abs(last.x - path[i].x) == 1)
-                cost += 1
-            if (Math.abs(last.y - path[i].y) == 1)
-                cost += 1
-            last = path[i];
-        }
-        return cost
     }
 
     rangeArea(o, r) { //o is a point object, and r is the radio of the circonference ( in our case it will be a square, according to our distance definition, as the number of steps)
@@ -322,14 +297,14 @@ class Bug {
             } else {
                 log.debug("wall")
                 path.push(step);
-                var lastStep = this.dummyPath[this.isInPath(this.dummyPath, step) - 1];
+                var lastStep = this.dummyPath[this.grid.isInPath(this.dummyPath, step) - 1];
                 var res = {
                     circumnavigation: [],
                     dists: []
                 };
 
                 var dummy = this.findDummyPath(lastStep, this.grid.objects['end']);
-                var dist = this.pathCost(dummy);
+                var dist = this.grid.pathCost(dummy);
                 res.circumnavigation.push(lastStep);
                 res.dists.push(dist)
 
@@ -365,7 +340,7 @@ class Bug {
     circumnavigate1(lastStep, obstacle, end, obj) { //end è la destinazione finale, mi serve per la distanza, dists contiene le distanze lungo la circumnavigazione
         var newStep = this.followObs(lastStep, obstacle);
         var dummy = this.findDummyPath(newStep, end);
-        var dist = this.pathCost(dummy);
+        var dist = this.grid.pathCost(dummy);
         obj.circumnavigation.push(newStep);
         obj.dists.push(dist)
         if (newStep.x == this.grid.objects["end"].x && newStep.y == this.grid.objects["end"].y)
@@ -395,11 +370,11 @@ class Bug {
             } else {
                 log.debug("wall")
                 path.push(step);
-                var lastStep = this.dummyPath[this.isInPath(this.dummyPath, step) - 1];
+                var lastStep = this.dummyPath[this.grid.isInPath(this.dummyPath, step) - 1];
                 path = this.circumnavigate2(lastStep, step, path, this.dummyPath)
                 log.debug("raggirato")
                 var last = path[path.length - 1]
-                i = this.isInPath(this.dummyPath, last) - 1; // il nuovo punto è sul dummy path, quindi basta ripartire da quell'indice
+                i = this.grid.isInPath(this.dummyPath, last) - 1; // il nuovo punto è sul dummy path, quindi basta ripartire da quell'indice
                 log.debug("--- " + i);
             }
         }
@@ -408,11 +383,11 @@ class Bug {
 
     circumnavigate2(lastStep, obstacle, newPath, oldPath) {
         var newStep = this.followObs(lastStep, obstacle);
-        var newPath = newPath.slice(0, this.isInPath(newPath, lastStep) + 1)
+        var newPath = newPath.slice(0, this.grid.isInPath(newPath, lastStep) + 1)
         newPath.push(newStep)
         log.debug(newStep)
         if (!this.grid.cellIsWall(newStep.x, newStep.y)) {
-            if (this.isInPath(oldPath, newStep) != -1 && this.isInPath(newPath, newStep) == newPath.length - 1)
+            if (this.grid.isInPath(oldPath, newStep) != -1 && this.grid.isInPath(newPath, newStep) == newPath.length - 1)
                 return newPath
             return this.circumnavigate2(newStep, obstacle, newPath, oldPath);
         } else
