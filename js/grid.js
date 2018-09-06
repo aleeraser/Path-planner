@@ -1517,56 +1517,7 @@ class Grid {
         return range
     }
 
-    bug1(dummyPath) {
-        var path = [];
-        for (var i = 0; i < dummyPath.length; i++) {
-            var step = dummyPath[i];
-            if (!this.cellIsWall(step.x, step.y)) {
-                // console.log(step)
-                path.push(step);
-            } else {
-                // console.log("wall")
-                path.push(step);
-                var lastStep = dummyPath[this.isInPath(dummyPath, step) - 1];
-                var res = {
-                    circumnavigation: [],
-                    dists: []
-                };
-
-                var dummy = this.findDummyPath(lastStep, this.objects['end']);
-                var dist = this.pathCost(dummy);
-                res.circumnavigation.push(lastStep);
-                res.dists.push(dist)
-
-                res = this.circumnavigate1(lastStep, step, this.objects['end'], res)
-                //usa res per capire il minimo e percorrere il percorso all'indietro
-                // console.log(path.length);
-                path.pop();
-                path.pop();
-                // console.log(path.length);
-
-                var minDist = Math.min(...res.dists);
-                // console.log("min dist: " + minDist)
-                var nearest = res.circumnavigation[res.dists.lastIndexOf(minDist)];
-                // console.log(nearest);
-                var backToNearest = res.circumnavigation.slice(res.dists.lastIndexOf(minDist), res.dists.length)
-
-                backToNearest.reverse();
-                // console.log(backToNearest);
-                path = path.concat(res.circumnavigation);
-                path = path.concat(backToNearest.slice(1, backToNearest.length));
-
-
-                dummyPath = this.findDummyPath(nearest, this.objects['end']);
-                // console.log("raggirato");
-                i = 0;
-                // console.log("--- " + i);
-            }
-        }
-        // console.log(path);
-        return path
-    }
-
+    
     followObs(lastStep, obstacle, sense = "anti") {
         // console.log("last ")
         // console.log(lastStep);
@@ -1575,16 +1526,16 @@ class Grid {
         var dir = "";
         if (lastStep.y > obstacle.y)
             dir += "N";
-        else if (lastStep.y < obstacle.y)
+            else if (lastStep.y < obstacle.y)
             dir += "S";
-        if (lastStep.x > obstacle.x)
+            if (lastStep.x > obstacle.x)
             dir += "O";
-        else if (lastStep.x < obstacle.x)
+            else if (lastStep.x < obstacle.x)
             dir += "E";
-
+            
         var newStep;
         // console.log(dir)
-
+        
         // console.log(sense)
         if (sense == "anti") {
             if (dir == "E" || dir == "SE") {
@@ -1634,6 +1585,56 @@ class Grid {
         return newStep;
     }
 
+    bug1(dummyPath) {
+        var path = [];
+        for (var i = 0; i < dummyPath.length; i++) {
+            var step = dummyPath[i];
+            if (!this.cellIsWall(step.x, step.y)) {
+                // console.log(step)
+                path.push(step);
+            } else {
+                // console.log("wall")
+                path.push(step);
+                var lastStep = dummyPath[this.isInPath(dummyPath, step) - 1];
+                var res = {
+                    circumnavigation: [],
+                    dists: []
+                };
+
+                var dummy = this.findDummyPath(lastStep, this.objects['end']);
+                var dist = this.pathCost(dummy);
+                res.circumnavigation.push(lastStep);
+                res.dists.push(dist)
+
+                res = this.circumnavigate1(lastStep, step, this.objects['end'], res)
+                //usa res per capire il minimo e percorrere il percorso all'indietro
+                // console.log(path.length);
+                path.pop();
+                path.pop();
+                // console.log(path.length);
+
+                var minDist = Math.min(...res.dists);
+                // console.log("min dist: " + minDist)
+                var nearest = res.circumnavigation[res.dists.lastIndexOf(minDist)];
+                // console.log(nearest);
+                var backToNearest = res.circumnavigation.slice(res.dists.lastIndexOf(minDist), res.dists.length)
+
+                backToNearest.reverse();
+                // console.log(backToNearest);
+                path = path.concat(res.circumnavigation);
+                path = path.concat(backToNearest.slice(1, backToNearest.length));
+
+
+                dummyPath = this.findDummyPath(nearest, this.objects['end']);
+                // console.log("raggirato");
+                i = 0;
+                // console.log("--- " + i);
+            }
+        }
+        // console.log(path);
+        return path
+    }
+    
     circumnavigate1(lastStep, obstacle, end, obj) { //end è la destinazione finale, mi serve per la distanza, dists contiene le distanze lungo la circumnavigazione
         var newStep = this.followObs(lastStep, obstacle);
         var dummy = this.findDummyPath(newStep, end);
@@ -1645,14 +1646,13 @@ class Grid {
         // console.log("new ");
         // console.log(newStep);
         if (!this.cellIsWall(newStep.x, newStep.y)) {
-            if (newStep.x == obj.circumnavigation[0].x && newStep.y == obj.circumnavigation[0].y) {
-                //non sto mettendo l'ultimo step, controllare se è giusto
+            if (newStep.x == obj.circumnavigation[0].x && newStep.y == obj.circumnavigation[0].y) { // se hai completato il giro
                 // console.log(obj.dists)
                 return obj
             }
             return this.circumnavigate1(newStep, obstacle, end, obj);
-        } else
-            obj.circumnavigation.pop();
+        }
+        obj.circumnavigation.pop();
         obj.dists.pop();
         // console.log(newStep)
         return this.circumnavigate1(lastStep, newStep, end, obj)
@@ -1672,7 +1672,7 @@ class Grid {
                 path = this.circumnavigate2(lastStep, step, path, dummyPath)
                 // console.log("raggirato")
                 var last = path[path.length - 1]
-                i = this.isInPath(dummyPath, last) - 1;
+                i = this.isInPath(dummyPath, last) - 1; // il nuovo punto è sul dummy path, quindi basta ripartire da quell'indice
                 // console.log("--- " + i);
             }
         }
