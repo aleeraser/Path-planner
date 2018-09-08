@@ -411,14 +411,16 @@ class Grid {
         }
     }
 
-    removeWall(cell_x, cell_y) {
+    removeWall(cell_x, cell_y, evaluatePath = true) {
         if (this.cellIsWall(cell_x, cell_y)) {
             var name = 'w' + cell_x + "-" + cell_y;
 
             this.wall_map[cell_x][cell_y] = 0;
             this.removeObj(name);
 
-            this.evaluatePath();
+            if (evaluatePath) {
+                this.evaluatePath();
+            }
         }
     }
 
@@ -426,14 +428,14 @@ class Grid {
         for (var key in this.objects) {
             var obj = this.objects[key];
             if (obj.type == this.RECT) {
-                this.removeWall(obj.x, obj.y);
+                this.removeWall(obj.x, obj.y, false);
             }
             if (obj.type == this.CIRCLE && obj.name != 'start' && obj.name != "end") {
                 this.removeObj(obj.name);
             }
         }
         if (this.drawPath) {
-            this.evaluatePath;
+            this.evaluatePath();
         }
     }
 
