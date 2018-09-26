@@ -693,8 +693,9 @@ class Grid {
             }
 
             var pointList;
-
+            var start = +new Date();
             switch (this.algorithm) {
+                
                 case "visibility":
                     pointList = new Visibility(grid).visibilityGraph();
                     break;
@@ -724,12 +725,24 @@ class Grid {
                     this.algorithm = null;
                     break;
             }
-
+            var end = +new Date();
+            var time = end -start;
             if (pointList) {
+                //console.log("IT TOOK " + time + " milliseconds. ")
+                //console.log("THE path is long " +  pointList.length)
+                if (pointList.length > 0)
+                    this.setRes(time, pointList.length);
+                else 
+                    this.setRes(time, "NOT FOUND")
                 this.addPath(pointList, "path", grid.SMALL, this.BEST_PATH_COLOR);
                 this.setObjectPosition("start", pointList[0].x, pointList[0].y);
             }
         }
+    }
+
+    setRes(time, pathLen) {
+        $('#time').html(time);
+        $('#length').html(pathLen);
     }
 
     pathCost(path) {

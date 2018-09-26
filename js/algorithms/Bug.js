@@ -42,9 +42,13 @@ class Bug {
 
     tangentBug() {
         log.debug("tangent bug");
-
+        var startTime = +new Date();
+       
         var path = [];
         for (var i = 0; i < this.dummyPath.length; i++) { //try to follow the dummy path
+            var cTime = +new Date();
+            if (cTime - startTime > 3000)
+                return []
             log.debug(this.dummyPath[i])
             var range = this.rangeArea(this.dummyPath[i], 2);
             log.debug('range');
@@ -106,7 +110,7 @@ class Bug {
                     this.boundaryFollow(toDisc[toDisc.length - 2], min, this.grid.objects["end"], dir, path);
                 } else {
                     path.push(this.dummyPath[i]);
-                    this.boundaryFollow(this.dummyPath[i], this.dummyPath[i + 1], this.grid.objects["end"], "anti", path);
+                    this.boundaryFollow(this.dummyPath[i], this.dummyPath[i + 1], this.grid.objects["end"], "anti", path, new Date());
                 }
                 this.dummyPath = this.findDummyPath(path[path.length - 1], this.grid.objects["end"]);
                 i = 0;
@@ -116,7 +120,11 @@ class Bug {
     }
 
     //circumnavigate equivalent for tangent bug
-    boundaryFollow(last, obstacle, end, dir, path) {
+    boundaryFollow(last, obstacle, end, dir, path, startTime) {
+        var cTime = +new Date();
+        if (cTime - startTime > 3000)
+            return []
+
         var newStep = this.followObs(last, obstacle, dir);
         if (!this.grid.cellIsWall(newStep.x, newStep.y)) {
             path.push(newStep);
@@ -139,10 +147,10 @@ class Bug {
             if (free && dReach <= dFollowed) {
                 return path
             }
-            return this.boundaryFollow(newStep, obstacle, end, dir, path);
+            return this.boundaryFollow(newStep, obstacle, end, dir, path, startTime);
         } else
             log.debug(newStep)
-        return this.boundaryFollow(last, newStep, end, dir, path);
+        return this.boundaryFollow(last, newStep, end, dir, path, startTime);
     }
 
     findDiscontinuities(obs) {
@@ -362,7 +370,11 @@ class Bug {
 
     bug2() {
         var path = [];
+        var startTime = +new Date();
         for (var i = 0; i < this.dummyPath.length; i++) {
+            var cTime = +new Date();
+            if (cTime - startTime > 3000)
+                return []
             var step = this.dummyPath[i];
             if (!this.grid.cellIsWall(step.x, step.y)) {
                 log.debug(step)
@@ -371,7 +383,9 @@ class Bug {
                 log.debug("wall")
                 path.push(step);
                 var lastStep = this.dummyPath[this.grid.isInPath(this.dummyPath, step) - 1];
-                path = this.circumnavigate2(lastStep, step, path, this.dummyPath)
+                path = this.circumnavigate2(lastStep, step, path, this.dummyPath, new Date())
+                if (path.length == 0) 
+                    return path
                 log.debug("raggirato")
                 var last = path[path.length - 1]
                 i = this.grid.isInPath(this.dummyPath, last) - 1; // il nuovo punto è sul dummy path, quindi basta ripartire da quell'indice
@@ -381,7 +395,13 @@ class Bug {
         return path
     }
 
-    circumnavigate2(lastStep, obstacle, newPath, oldPath) {
+    circumnavigate2(lastStep, obstacle, newPath, oldPath, startTime) {
+        var cTime = +new Date();
+        console.log(cTime - startTime)
+        if (cTime - startTime > 3000){
+            console.log("TOOO MUCH TIME")
+            return [];
+        }
         var newStep = this.followObs(lastStep, obstacle);
         var newPath = newPath.slice(0, this.grid.isInPath(newPath, lastStep) + 1)
         newPath.push(newStep)
@@ -389,8 +409,8 @@ class Bug {
         if (!this.grid.cellIsWall(newStep.x, newStep.y)) {
             if (this.grid.isInPath(oldPath, newStep) != -1 && this.grid.isInPath(newPath, newStep) == newPath.length - 1)
                 return newPath
-            return this.circumnavigate2(newStep, obstacle, newPath, oldPath);
+            return this.circumnavigate2(newStep, obstacle, newPath, oldPath, startTime);
         } else
-            return this.circumnavigate2(lastStep, newStep, newPath, oldPath)
+            return this.circumnavigate2(lastStep, newStep, newPath, oldPath, startTime)
     }
 }

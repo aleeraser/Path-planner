@@ -50,3 +50,15 @@
 .light-theme .dropdown-content>li>span {
     color: #cfd8dc !important;
 }
+
+.card-results{
+    width: 8rem;
+    position: fixed;
+    top: 2em;
+    right: 2em;
+    word-wrap: break-word;
+}
+
+.results{
+    margin-left: 1em;
+}
