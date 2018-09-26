@@ -36,14 +36,14 @@
                     </li>
                 </ul>
 
-                <br>
+                <br />
 
                 <div class='input-field col s12'>
                     <select id='algorithmSelect'></select>
                     <label>Planning algorithm</label>
                 </div>
 
-                <br>
+                <br />
 
                 <div class='input-field col s12'>
                     <p class='label instruction-header'>Theme</p>
@@ -62,7 +62,7 @@
                     </p>
                 </div>
 
-                <br>
+                <br />
 
                 <div class='input-field col s12'>
                     <p class='instruction-header'>Adjust cells size
@@ -72,6 +72,16 @@
                         <button id='increaseCellsSize' class='btn blue-grey white-text' onclick='grid.increaseCellsSize(this)'>
                             <i class='material-icons'>zoom_in</i>
                         </button>
+                    </p>
+                </div>
+
+                <div id='potential-checkbox-container' class='input-field col s12' hidden>
+                    <p>
+                        <label>
+                            <input id='potential-checkbox' type='checkbox' onclick='alert("Not implemented yet.")'
+                                class='filled-in' />
+                            <span class="black-text">Show potential fields values</span>
+                        </label>
                     </p>
                 </div>
 
@@ -85,12 +95,12 @@
     </div>
 
     <div class='draggable card-performance blue-grey lighten-4'>
-        <h5 class="center card-title blue-grey-text text-darken-1">Performance</h5>
+        <h5 class='center card-title blue-grey-text text-darken-1'>Performance</h5>
         <div class='card-content'>
-            <div class="performance">
-                <ul class="collection">
-                    <li class="collection-item blue-grey lighten-5 blue-grey-text text-darken-4">Compute time: <span id="time">N/A</span>.</li>
-                    <li class="collection-item blue-grey lighten-5 blue-grey-text text-darken-4">Path length: <span id="length">N/A</span>.</li>
+            <div class='performance'>
+                <ul class='collection'>
+                    <li class='collection-item blue-grey lighten-5 blue-grey-text text-darken-4'>Compute time: <span id='time'>N/A</span>.</li>
+                    <li class='collection-item blue-grey lighten-5 blue-grey-text text-darken-4'>Path length: <span id='length'>N/A</span>.</li>
                 </ul>
                 </li>
             </div>
@@ -200,6 +210,12 @@
             $('#algorithmSelect').on('change', function () {
                 grid.setAlgorithm($(this).val());
                 grid.evaluatePath();
+
+                if ($(this).val() == 'potential' || $(this).val() == 'potential-memory') {
+                    $('#potential-checkbox-container').show();
+                } else {
+                    $('#potential-checkbox-container').hide();
+                }
             });
 
 
@@ -231,4 +247,4 @@
     </script>
 </body>
 
-</html>Ø
+</html>
