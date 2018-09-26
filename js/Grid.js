@@ -693,17 +693,18 @@ class Grid {
             }
 
             var pointList;
-            var start = +new Date();
+            var computeTime = performance.now();
+
             switch (this.algorithm) {
-                
+
+                case "decomposition":
+                    pointList = new Decomposition(grid).getPointList();
+                    break;
                 case "visibility":
                     pointList = new Visibility(grid).visibilityGraph();
                     break;
                 case "probabilistic":
                     pointList = new Visibility(grid).probabilisticRoadmap();
-                    break;
-                case "decomposition":
-                    pointList = new Decomposition(grid).getPointList();
                     break;
                 case "potential":
                     pointList = new PotentialFields(grid).simple();
@@ -725,24 +726,34 @@ class Grid {
                     this.algorithm = null;
                     break;
             }
-            var end = +new Date();
-            var time = end -start;
+
+            computeTime = performance.now() - computeTime;
+
+            var unit = "ms";
+
+            if (computeTime > 1000) { // seconds
+                computeTime /= 1000;
+                computeTime = Math.round(computeTime * 100) / 100; // keep 2 decimal digits
+                unit = "s";
+            } else if (computeTime > 1) { // milliseconds
+                computeTime = Math.round(computeTime);
+            } else if (computeTime < 1) { // less than 1 millisecond
+                computeTime = Math.round(computeTime * 100) / 100; // keep 2 decimal digits
+            }
+
             if (pointList) {
-                //console.log("IT TOOK " + time + " milliseconds. ")
-                //console.log("THE path is long " +  pointList.length)
-                if (pointList.length > 0)
-                    this.setRes(time, pointList.length);
-                else 
-                    this.setRes(time, "NOT FOUND")
+                this.setPerformance(computeTime, unit, pointList.length);
                 this.addPath(pointList, "path", grid.SMALL, this.BEST_PATH_COLOR);
                 this.setObjectPosition("start", pointList[0].x, pointList[0].y);
+            } else {
+                this.setPerformance(computeTime, "No path found");
             }
         }
     }
 
-    setRes(time, pathLen) {
-        $('#time').html(time);
-        $('#length').html(pathLen);
+    setPerformance(time, unit, pathLen) {
+        $('#time').html(time + " " + unit);
+        $('#length').html(pathLen + " cells");
     }
 
     pathCost(path) {
