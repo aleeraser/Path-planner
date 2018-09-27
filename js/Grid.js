@@ -744,9 +744,14 @@ class Grid {
             }
 
             if (pointList && pointList.length > 0) {
-                this.setPerformance(computeTime, unit, pointList.length);
                 this.addPath(pointList, "path", grid.SMALL, this.BEST_PATH_COLOR);
-                this.setObjectPosition("start", pointList[0].x, pointList[0].y);
+                if (pointList[pointList.length-1].x == this.objects['end'].x &&  pointList[pointList.length-1].y == this.objects['end'].y) {
+                    this.setPerformance(computeTime, unit, pointList.length);
+                    this.setObjectPosition("start", pointList[0].x, pointList[0].y);
+                }
+                else {
+                    this.setPerformance(computeTime, "No path found");
+                }
             } else {
                 this.setPerformance(computeTime, "No path found");
             }
