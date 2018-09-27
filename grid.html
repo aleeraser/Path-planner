@@ -17,7 +17,7 @@
             <div class='row'>
                 <ul class='collapsible'>
                     <li>
-                        <div class='collapsible-header blue-grey lighten-4 blue-grey-text'>
+                        <div class='collapsible-header blue-grey lighten-4 blue-grey-text text-darken-1'>
                             <div class='valign-wrapper'>
                                 <i class='material-icons ' id='collapsible-icon'>chevron_right</i>
                                 <h5>Instructions</h5>
@@ -27,28 +27,30 @@
                             <p>Use the left mouse button to place or remove obstacles.
                                 <span style='font-weight: bold'>Tip</span>: you can also click and drag!</p>
                             <p>Use the right mouse button to place
-                                <span class='green-text darken-1'>start</span> and
-                                <span class='red-text darken-1'>end</span> points. The path calculation will immediately start after placing the
-                                <span class='red-text darken-1'>end</span> point.</p>
+                                <span class='green-text text-darken-1'>start</span> and
+                                <span class='red-text text-darken-1'>end</span> points. The path calculation will
+                                immediately start after placing the
+                                <span class='red-text text-darken-1'>end</span> point.</p>
                             <p>Path will be calculated using a planning algorithm picked from the selection below.</p>
                         </div>
                     </li>
                 </ul>
 
-                <br>
+                <br />
 
                 <div class='input-field col s12'>
                     <select id='algorithmSelect'></select>
                     <label>Planning algorithm</label>
                 </div>
 
-                <br>
+                <br />
 
                 <div class='input-field col s12'>
                     <p class='label instruction-header'>Theme</p>
                     <p>
                         <label>
-                            <input type='radio' class='with-gap' name='theme' value='dark' onclick='updateTheme(this);' checked />
+                            <input type='radio' class='with-gap' name='theme' value='dark' onclick='updateTheme(this);'
+                                checked />
                             <span class='theme-option'>Dark</span>
                         </label>
                     </p>
@@ -60,7 +62,7 @@
                     </p>
                 </div>
 
-                <br>
+                <br />
 
                 <div class='input-field col s12'>
                     <p class='instruction-header'>Adjust cells size
@@ -73,6 +75,16 @@
                     </p>
                 </div>
 
+                <div id='potential-checkbox-container' class='input-field col s12' hidden>
+                    <p>
+                        <label>
+                            <input id='potential-checkbox' type='checkbox' onclick='alert("Not implemented yet.")'
+                                class='filled-in' />
+                            <span class="black-text">Show potential fields values</span>
+                        </label>
+                    </p>
+                </div>
+
             </div>
             <div class='card-action center-align'>
                 <button class='btn blue-grey white-text' onclick='grid.clearWalls()'>Clear obstacles</button>
@@ -82,26 +94,20 @@
         </div>
     </div>
 
-
-    <div class='draggable card-results blue-grey lighten-5'>
-        <div class='card-content '>
-
-            <div class='row'>
-                <div class="results">
-
-                    <p class='instruction-header'> Time spent (ms):
-                        <a id="time"> </a>
-                    </p>
-                    <p class='instruction-header'> Path length (cells):
-                        <a id="length"> </a>
-                    </p>
-                </div>
+    <div class='draggable card-performance blue-grey lighten-4'>
+        <h5 class='center card-title blue-grey-text text-darken-1'>Performance</h5>
+        <div class='card-content'>
+            <div class='performance'>
+                <ul class='collection'>
+                    <li class='collection-item blue-grey lighten-5 blue-grey-text text-darken-4'>Compute time: <span id='time'>N/A</span>.</li>
+                    <li class='collection-item blue-grey lighten-5 blue-grey-text text-darken-4'>Path length: <span id='length'>N/A</span>.</li>
+                </ul>
+                </li>
             </div>
 
         </div>
 
     </div>
-
 
     <script type='text/javascript' src='js/Grid.js'></script>
     <script type='text/javascript' src='js/algorithms/Decomposition.js'></script>
@@ -204,6 +210,12 @@
             $('#algorithmSelect').on('change', function () {
                 grid.setAlgorithm($(this).val());
                 grid.evaluatePath();
+
+                if ($(this).val() == 'potential' || $(this).val() == 'potential-memory') {
+                    $('#potential-checkbox-container').show();
+                } else {
+                    $('#potential-checkbox-container').hide();
+                }
             });
 
 
@@ -211,6 +223,8 @@
             var instructionsPanel = $('.draggable');
 
             instructionsPanel.on('mousedown', function (e) {
+                event.preventDefault();
+
                 var dr = $(this).addClass('drag').css('cursor', 'move');
                 height = dr.outerHeight();
                 width = dr.outerWidth();

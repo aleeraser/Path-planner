@@ -51,14 +51,15 @@
     color: #cfd8dc !important;
 }
 
-.card-results{
-    width: 8rem;
+.card-performance{
+    border-radius: 2px;
+    min-width: 13em;
     position: fixed;
     top: 2em;
     right: 2em;
     word-wrap: break-word;
 }
 
-.results{
-    margin-left: 1em;
+.card-performance .collection {
+    margin-bottom: 0;
 }
