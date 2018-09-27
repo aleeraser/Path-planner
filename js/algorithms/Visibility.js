@@ -216,7 +216,7 @@ class Visibility {
     }
 
     randomObstacleVertex() {
-        var SAMPLE_NUM = this.grid.size.x;
+        var SAMPLE_NUM = this.grid.size.x / 2;
         var MAX_TRIES = this.grid.size.x * 3;
         var i = 0;
         var n = 0;

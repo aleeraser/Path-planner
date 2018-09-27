@@ -3,6 +3,7 @@ class PotentialFields {
 
     constructor(grid) {
         this.grid = grid;
+        this.show_labels = grid.potentialLabels;
     }
 
     simple() {
@@ -15,7 +16,6 @@ class PotentialFields {
 
     compute(memory = false) {
 
-        var SHOW_LABELS = false;
         this.grid.removeAllText();
 
         var goal = this.grid.objects['end'];
@@ -72,7 +72,7 @@ class PotentialFields {
                     pf = Math.pow(i - goal.x, 2) + Math.pow(j - goal.y, 2) + this.grid.repulsive_map[i][j];
                 l.push(pf);
 
-                if (SHOW_LABELS)
+                if (this.show_labels)
                     this.grid.addText('pf_' + i + '_' + j, grid.SMALL, i, j, 'white', pf);
             }
             this.grid.potential_map.push(l);
@@ -155,4 +155,5 @@ class PotentialFields {
 
         return move;
     }
+
 }
