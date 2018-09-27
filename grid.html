@@ -107,6 +107,19 @@
                 <button class='btn blue-grey white-text' onclick='grid.clearPaths()'>Clear path</button>
             </div>
 
+            <div class='card-action center-align'>
+                <button class='btn blue-grey white-text' onclick='grid.downloadMap()'>Save Map</button>
+                <div class="file-field input-field">
+                    <div class="btn">
+                      <span>Load Map</span>
+                      <input type="file" onchange="grid.handleFiles(this.files)">
+                    </div>
+                    <div class="file-path-wrapper">
+                      <input class="file-path validate" type="text">
+                    </div>
+                  </div>
+            </div>
+
         </div>
     </div>
 
@@ -132,6 +145,7 @@
     <script type='text/javascript' src='js/algorithms/Bug.js'></script>
     <script type='text/javascript' src='libs/graph.js'></script>
     <script type='text/javascript' src='libs/loglevel.js'></script>
+    <script type='text/javascript' src='libs/download.js'></script>
     <script src='https://code.jquery.com/jquery-3.3.1.min.js' integrity='sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8='
         crossorigin='anonymous'></script>
     <script type='text/javascript' src='libs/materialize.js'></script>

@@ -30,6 +30,8 @@ class Grid {
         this.distance_of_influence = 1;
         this.probabilistic_nodes = 10;
 
+        this.reader = new FileReader();
+
         // Canvas size and cell number
         this.size = {
             x: -1,
@@ -140,7 +142,7 @@ class Grid {
             }
         }
 
-        this.objects = [];
+        this.objects = {};
         this.drawPath = false;
         this.updateGraphics();
     }
@@ -791,7 +793,7 @@ class Grid {
         return r;
     }
 
-    togglePotentialLabels() {
+    togglePotentialLabels() {                
         this.potential_labels = !this.potential_labels;
         if (this.potential_labels) {
             console.log(this.potential_map);
@@ -820,5 +822,42 @@ class Grid {
     potentialParameters() {
         this.repulsive_value = document.getElementById('repulsive-value').value;
         this.distance_of_influence = document.getElementById('distance-of-influence').value;
+    }
+
+    downloadMap() {
+        var map_json = {}
+        map_json['spacing_x'] = this.spacing_x;
+        map_json['spacing_y'] = this.spacing_y;
+        map_json['cell_side_length'] = this.cellSideLength;
+        map_json['size'] = this.size;
+        map_json['wall_map'] = this.wall_map;
+        var wall_object = {};
+        for (var key in this.objects) {
+            var obj = this.objects[key];
+            if (obj.type == this.RECT) {
+                wall_object[key] = obj;
+            }
+        }
+        map_json['objects'] = wall_object;
+
+        var date = new Date();
+        download(JSON.stringify(map_json), "map_" + date.getTime() +" .json", "application/json");
+    }
+
+
+    handleFiles(file) {
+        var self = this;
+        this.reader.onload = function(event) {
+            var read_map_json = JSON.parse(event.target.result)
+            self.spacing_x = read_map_json['spacing_x'];
+            self.spacing_y = read_map_json['spacing_y'];
+            self.cellSideLength = read_map_json['cell_side_length'];
+            self.generate();
+            self.size = read_map_json['size'];
+            self.wall_map = read_map_json['wall_map'];
+            self.objects = read_map_json['objects'];
+            self.updateGraphics();
+        };
+        this.reader.readAsText(file[0], 'UTF-8');
     }
 }
