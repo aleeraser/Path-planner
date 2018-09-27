@@ -25,6 +25,8 @@ class Grid {
         this.canvas_obj.setAttribute("height", height);
         this.context = this.canvas_obj.getContext("2d");
 
+        this.potentialLabels = false;
+
         // Canvas size and cell number
         this.size = {
             x: -1,
@@ -779,5 +781,26 @@ class Grid {
             }
         }
         return r;
+    }
+
+    togglePotentialLabels() {
+        this.potentialLabels = !this.potentialLabels;
+        if (this.potentialLabels) {
+            console.log(this.potential_map);
+            // There is no potential map yet
+            if (this.potential_map.length == 0) {
+                return;
+            }
+
+            // Else
+            for (var i = 0; i < this.size.x; i++) {
+                for (var j = 0; j < this.size.y; j++) {
+                    this.addText('pf_' + i + '_' + j, grid.SMALL, i, j, 'white', this.potential_map[i][j]);
+                }
+            }
+        }
+        if (!this.potentialLabels) {
+            this.removeAllText();
+        }
     }
 }
