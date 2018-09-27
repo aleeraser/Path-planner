@@ -107,10 +107,10 @@ class Bug {
                             dir = "or";
                     }
                     log.debug(dir)
-                    this.boundaryFollow(toDisc[toDisc.length - 2], min, this.grid.objects["end"], dir, path);
+                    this.boundaryFollow(toDisc[toDisc.length - 2], min, this.grid.objects["end"], dir, path, startTime);
                 } else {
                     path.push(this.dummyPath[i]);
-                    this.boundaryFollow(this.dummyPath[i], this.dummyPath[i + 1], this.grid.objects["end"], "anti", path, new Date());
+                    this.boundaryFollow(this.dummyPath[i], this.dummyPath[i + 1], this.grid.objects["end"], "anti", path, startTime);
                 }
                 this.dummyPath = this.findDummyPath(path[path.length - 1], this.grid.objects["end"]);
                 i = 0;
@@ -383,7 +383,7 @@ class Bug {
                 log.debug("wall")
                 path.push(step);
                 var lastStep = this.dummyPath[this.grid.isInPath(this.dummyPath, step) - 1];
-                path = this.circumnavigate2(lastStep, step, path, this.dummyPath, new Date())
+                path = this.circumnavigate2(lastStep, step, path, this.dummyPath, startTime)
                 if (path.length == 0) 
                     return path
                 log.debug("raggirato")

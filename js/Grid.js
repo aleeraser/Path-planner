@@ -730,12 +730,13 @@ class Grid {
             if (pointList) {
                 //console.log("IT TOOK " + time + " milliseconds. ")
                 //console.log("THE path is long " +  pointList.length)
-                if (pointList.length > 0)
+                if (pointList.length > 0){
                     this.setRes(time, pointList.length);
+                    this.addPath(pointList, "path", grid.SMALL, this.BEST_PATH_COLOR);
+                    this.setObjectPosition("start", pointList[0].x, pointList[0].y);
+                }
                 else 
                     this.setRes(time, "NOT FOUND")
-                this.addPath(pointList, "path", grid.SMALL, this.BEST_PATH_COLOR);
-                this.setObjectPosition("start", pointList[0].x, pointList[0].y);
             }
         }
     }
