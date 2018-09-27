@@ -42,12 +42,12 @@ class Bug {
 
     tangentBug() {
         log.debug("tangent bug");
-        var startTime = +new Date();
+        var startTime = performance.now();
        
         var path = [];
         for (var i = 0; i < this.dummyPath.length; i++) { //try to follow the dummy path
-            var cTime = +new Date();
-            if (cTime - startTime > 3000)
+            var cTime = performance.now();
+            if (cTime - startTime > 1000)
                 return []
             log.debug(this.dummyPath[i])
             var range = this.rangeArea(this.dummyPath[i], 2);
@@ -121,8 +121,8 @@ class Bug {
 
     //circumnavigate equivalent for tangent bug
     boundaryFollow(last, obstacle, end, dir, path, startTime) {
-        var cTime = +new Date();
-        if (cTime - startTime > 3000)
+        var cTime = performance.now();
+        if (cTime - startTime > 1000)
             return []
 
         var newStep = this.followObs(last, obstacle, dir);
@@ -370,10 +370,10 @@ class Bug {
 
     bug2() {
         var path = [];
-        var startTime = +new Date();
+        var startTime = performance.now();
         for (var i = 0; i < this.dummyPath.length; i++) {
-            var cTime = +new Date();
-            if (cTime - startTime > 3000)
+            var cTime = performance.now();
+            if (cTime - startTime > 1000)
                 return []
             var step = this.dummyPath[i];
             if (!this.grid.cellIsWall(step.x, step.y)) {
@@ -396,10 +396,9 @@ class Bug {
     }
 
     circumnavigate2(lastStep, obstacle, newPath, oldPath, startTime) {
-        var cTime = +new Date();
-        console.log(cTime - startTime)
-        if (cTime - startTime > 3000){
-            console.log("TOOO MUCH TIME")
+        var cTime = performance.now();
+        if (cTime - startTime > 1000){
+            log.debug("TOOO MUCH TIME")
             return [];
         }
         var newStep = this.followObs(lastStep, obstacle);

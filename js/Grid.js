@@ -741,7 +741,7 @@ class Grid {
                 computeTime = Math.round(computeTime * 100) / 100; // keep 2 decimal digits
             }
 
-            if (pointList) {
+            if (pointList && pointList.length > 0) {
                 this.setPerformance(computeTime, unit, pointList.length);
                 this.addPath(pointList, "path", grid.SMALL, this.BEST_PATH_COLOR);
                 this.setObjectPosition("start", pointList[0].x, pointList[0].y);
