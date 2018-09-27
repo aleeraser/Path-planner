@@ -1,9 +1,11 @@
 // Potential Fields methods
 class PotentialFields {
 
-    constructor(grid) {
+    constructor(grid, distance_of_influence, repulsive_value) {
         this.grid = grid;
         this.show_labels = grid.potential_labels;
+        this.distance_of_influence = distance_of_influence;
+        this.repulsive_value = repulsive_value;
     }
 
     simple() {
@@ -20,9 +22,7 @@ class PotentialFields {
 
         var goal = this.grid.objects['end'];
 
-        // Obstacles repulsive map
-        var SCALING_FACTOR = 30;
-        var DISTANCE_OF_INFLUENCE = 1;
+
         this.grid.repulsive_map = [];
         for (var i = 0; i < this.grid.size.x; i++) {
             var l = []
@@ -34,17 +34,17 @@ class PotentialFields {
 
         // Range of influence
         var influence = [];
-        for (var i = -DISTANCE_OF_INFLUENCE; i <= DISTANCE_OF_INFLUENCE; i++) {
+        for (var i = -this.distance_of_influence; i <= this.distance_of_influence; i++) {
             influence.push(i);
         }
 
         for (var i = 0; i < this.grid.size.x; i++) {
             for (var j = 0; j < this.grid.size.y; j++) {
                 if (this.grid.wall_map[i][j] == 1) {
-                    this.grid.repulsive_map[i][j] = SCALING_FACTOR;
+                    this.grid.repulsive_map[i][j] = this.repulsive_value;
                     influence.forEach(x => {
                         influence.forEach(y => {
-                            var repulsion = SCALING_FACTOR / (Math.abs(x) + Math.abs(y));
+                            var repulsion = this.repulsive_value / (Math.abs(x) + Math.abs(y));
                             if (i + x > 0 && i + x < this.grid.size.x && j + y > 0 && j + y < this.grid.size.y) {
                                 if (this.grid.repulsive_map[i + x][j + y] < repulsion) {
                                     this.grid.repulsive_map[i + x][j + y] = repulsion;

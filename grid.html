@@ -82,6 +82,14 @@
                                 class='filled-in' />
                             <span class="black-text">Show potential fields values</span>
                         </label>
+                        <input id="repulsive-value" value="30" type="number" min="1" max="500" step="1" class="validate" 
+                            onchange="grid.potentialParameters()"
+                            oninput="grid.potentialParameters()">
+                        <label for="repulsive-value">Repulsive Value</label>
+                        <input id="distance-of-influence" value="1" type="number" min="0" max="5" step="1" class="validate" 
+                            onchange="grid.potentialParameters()"
+                            oninput="grid.potentialParameters()">
+                        <label for="distance-of-influence">Obstacle Repulsive Range</label>
                     </p>
                 </div>
 
@@ -91,6 +99,7 @@
                             oninput="grid.probabilisticNodes()">
                     <label for="probabilistic-nodes">Number of Nodes</label>
                 </div>
+                
                
             </div>
             <div class='card-action center-align'>

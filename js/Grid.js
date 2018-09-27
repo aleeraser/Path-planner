@@ -26,7 +26,9 @@ class Grid {
         this.context = this.canvas_obj.getContext("2d");
 
         this.potential_labels = false;
-        this.probabilistic_nodes = 10
+        this.repulsive_value = 30;
+        this.distance_of_influence = 1;
+        this.probabilistic_nodes = 10;
 
         // Canvas size and cell number
         this.size = {
@@ -710,7 +712,7 @@ class Grid {
                     pointList = new Visibility(grid, this.probabilistic_nodes).probabilisticRoadmap();
                     break;
                 case "potential":
-                    pointList = new PotentialFields(grid).simple();
+                    pointList = new PotentialFields(grid, this.distance_of_influence, this.repulsive_value).simple();
                     break;
                 case "potential-memory":
                     pointList = new PotentialFields(grid).withMemory();
@@ -813,5 +815,10 @@ class Grid {
 
     probabilisticNodes() {
         this.probabilistic_nodes = document.getElementById('probabilistic-nodes').value;
+    }
+
+    potentialParameters() {
+        this.repulsive_value = document.getElementById('repulsive-value').value;
+        this.distance_of_influence = document.getElementById('distance-of-influence').value;
     }
 }
