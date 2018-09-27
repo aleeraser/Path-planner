@@ -25,7 +25,8 @@ class Grid {
         this.canvas_obj.setAttribute("height", height);
         this.context = this.canvas_obj.getContext("2d");
 
-        this.potentialLabels = false;
+        this.potential_labels = false;
+        this.probabilistic_nodes = 10
 
         // Canvas size and cell number
         this.size = {
@@ -706,7 +707,7 @@ class Grid {
                     pointList = new Visibility(grid).visibilityGraph();
                     break;
                 case "probabilistic":
-                    pointList = new Visibility(grid).probabilisticRoadmap();
+                    pointList = new Visibility(grid, this.probabilistic_nodes).probabilisticRoadmap();
                     break;
                 case "potential":
                     pointList = new PotentialFields(grid).simple();
@@ -789,8 +790,8 @@ class Grid {
     }
 
     togglePotentialLabels() {
-        this.potentialLabels = !this.potentialLabels;
-        if (this.potentialLabels) {
+        this.potential_labels = !this.potential_labels;
+        if (this.potential_labels) {
             console.log(this.potential_map);
             // There is no potential map yet
             if (this.potential_map.length == 0) {
@@ -804,8 +805,13 @@ class Grid {
                 }
             }
         }
-        if (!this.potentialLabels) {
+        if (!this.potential_labels) {
             this.removeAllText();
         }
+    }
+
+
+    probabilisticNodes() {
+        this.probabilistic_nodes = document.getElementById('probabilistic-nodes').value;
     }
 }

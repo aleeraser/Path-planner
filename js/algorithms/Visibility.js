@@ -1,8 +1,9 @@
 // Visibility Graph Methods
 class Visibility {
 
-    constructor(grid) {
+    constructor(grid, nodes_num = 10) {
         this.grid = grid;
+        this.nodes_num = nodes_num;
     }
 
     visibilityGraph() {
@@ -216,7 +217,8 @@ class Visibility {
     }
 
     randomObstacleVertex() {
-        var SAMPLE_NUM = this.grid.size.x / 2;
+        //var SAMPLE_NUM = this.grid.size.x / 2;
+        var SAMPLE_NUM = this.nodes_num;
         var MAX_TRIES = this.grid.size.x * 3;
         var i = 0;
         var n = 0;

@@ -3,7 +3,7 @@ class PotentialFields {
 
     constructor(grid) {
         this.grid = grid;
-        this.show_labels = grid.potentialLabels;
+        this.show_labels = grid.potential_labels;
     }
 
     simple() {
