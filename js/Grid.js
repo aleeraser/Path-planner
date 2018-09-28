@@ -755,17 +755,17 @@ class Grid {
                     this.setObjectPosition("start", pointList[0].x, pointList[0].y);
                 }
                 else {
-                    this.setPerformance(computeTime, "No path found");
+                    this.setPerformance(computeTime, unit, -1);
                 }
             } else {
-                this.setPerformance(computeTime, "No path found");
+                this.setPerformance(computeTime, unit, -1);
             }
         }
     }
 
     setPerformance(time, unit, pathLen) {
         $('#time').html(time + " " + unit);
-        $('#length').html(pathLen + " cells");
+        $('#length').html(pathLen == -1 ? "No path found" : pathLen + " cells");
     }
 
     pathCost(path) {
