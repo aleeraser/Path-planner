@@ -688,6 +688,8 @@ class Grid {
     evaluatePath() {
         if (this.drawPath) {
 
+
+
             // Remove all previous paths and points, except for 'start' and 'end' points
             for (var key in this.objects) {
                 var obj = this.objects[key];
@@ -795,7 +797,8 @@ class Grid {
     togglePotentialLabels() {
         this.potential_labels = !this.potential_labels;
         if (this.potential_labels) {
-            console.log(this.potential_map);
+            log.debug(this.potential_map);
+
             // There is no potential map yet
             if (this.potential_map.length == 0) {
                 return;
