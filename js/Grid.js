@@ -841,7 +841,7 @@ class Grid {
         map_json['objects'] = wall_object;
 
         var date = new Date();
-        download(JSON.stringify(map_json), "map_" + date.getTime() +" .json", "application/json");
+        download(JSON.stringify(map_json), "map_" + date.getTime() + ".json", "application/json");
     }
 
 
@@ -849,6 +849,15 @@ class Grid {
         var self = this;
         this.reader.onload = function(event) {
             var read_map_json = JSON.parse(event.target.result)
+
+            // Check size
+            if (self.size.x < read_map_json['size'].x || self.size.y < read_map_json['size'].y) {
+                var alert_str = 'Map dimensions non compatible:\n';
+                alert_str += 'Trying to load (' + read_map_json['size'].x + ', ' + read_map_json['size'].y + ') on a (' + self.size.x + ', ' + self.size.y + ') map.' 
+                alert(alert_str);
+                return;
+            }
+
             self.spacing_x = read_map_json['spacing_x'];
             self.spacing_y = read_map_json['spacing_y'];
             self.cellSideLength = read_map_json['cell_side_length'];
