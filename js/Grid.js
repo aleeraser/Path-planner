@@ -749,6 +749,7 @@ class Grid {
             }
 
             if (pointList && pointList.length > 0) {
+                
                 this.addPath(pointList, "path", grid.SMALL, this.BEST_PATH_COLOR);
                 if (pointList[pointList.length-1].x == this.objects['end'].x &&  pointList[pointList.length-1].y == this.objects['end'].y) {
                     this.setPerformance(computeTime, unit, pointList.length);
@@ -796,7 +797,7 @@ class Grid {
     togglePotentialLabels() {                
         this.potential_labels = !this.potential_labels;
         if (this.potential_labels) {
-            console.log(this.potential_map);
+            log.debug(this.potential_map);
             // There is no potential map yet
             if (this.potential_map.length == 0) {
                 return;
