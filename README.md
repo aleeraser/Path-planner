@@ -2,7 +2,7 @@
 
 Path planner is a webapp aimed for visually compare different path planning algorithms for intelligent agents.
 
-## Intro
+## Description
 
 **Path planning** is the process of determining the path an agent has to follow in order to reach a given destination. It's a problem with lot of variants, depending on the characteristics of the environment in which the entity has to move and also depending on the capabilities and knowledge of the entity itself.
 
@@ -27,7 +27,7 @@ For both kind of problems, the most popular techniques are implemented in order 
 
 \* **Note**: the planner assumes the world as a discrete grid, thus some algorithms may behave or may be implemented a little differently compared to specification, **e.g.** **Cellular Decomposition**.
 
-#### For further informations please refer to the ![project report](docs/report.pdf "project report").
+**For further informations please refer to the [project report](docs/report.pdf).**
 
 ## Authors
 
