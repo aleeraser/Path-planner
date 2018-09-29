@@ -805,7 +805,7 @@ class Grid {
             log.debug(this.potential_map);
 
             // There is no potential map yet
-            if (this.potential_map.length == 0) {
+            if (!this.potential_map || this.potential_map.length == 0) {
                 return;
             }
 
