@@ -2,6 +2,8 @@
 
 Path planner is a webapp aimed for visually compare different path planning algorithms for intelligent agents.
 
+[Live Demo](https://aleeraser.github.io/Path-planner/)
+
 ## Description
 
 **Path planning** is the process of determining the path an agent has to follow in order to reach a given destination. It's a problem with lot of variants, depending on the characteristics of the environment in which the entity has to move and also depending on the capabilities and knowledge of the entity itself.
